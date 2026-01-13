@@ -356,7 +356,7 @@
         <!-- Sidebar -->
         <div id="sidebar">
             <div class="logo-section">
-                <img src="ATOM logo.png" alt="ATOM Logo">
+                <img src="pictures/Atom_logo.png" alt="ATOM Logo">
                 <div class="company-name">Acme Milk Corporate (AMC)</div>
                 <div class="project-name">Distribution Network Design</div>
             </div>
@@ -412,16 +412,16 @@
                     <div class="sidebar-section">
                         <h3>Parameters</h3>
                         <div class="parameter-input">
-                            <label>First Mile Rate ($/pallet/km):</label>
-                            <input type="number" id="first-mile-rate" value="0.28" step="0.01">
+                            <label>First Mile Rate ($/pallet/1,000km):</label>
+                            <input type="number" id="first-mile-rate" value="5.60" step="0.01">
                         </div>
                         <div class="parameter-input">
-                            <label>Last Mile Rate ($/pallet/km):</label>
-                            <input type="number" id="last-mile-rate" value="0.48" step="0.01">
+                            <label>Last Mile Rate ($/pallet/1,000km):</label>
+                            <input type="number" id="last-mile-rate" value="9.60" step="0.01">
                         </div>
                         <div class="parameter-input">
                             <label>Storage Rate ($/pallet/month):</label>
-                            <input type="number" id="storage-rate" value="15" step="0.1">
+                            <input type="number" id="storage-rate" value="0.30" step="0.01">
                         </div>
                         <div class="parameter-input">
                             <label>DIO (days):</label>
@@ -518,9 +518,6 @@
                         </div>
                     </div>
 
-                    <!-- Scenario Feed (dynamically populated) -->
-                    <div id="scenario-feed" style="margin-bottom: 40px;"></div>
-
                     <!-- New Scenario Creator -->
                     <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-dark);">Create New Scenario</h3>
@@ -539,16 +536,16 @@
                             <div>
                                 <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">Parameters</h4>
                                 <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">First Mile Rate ($/pallet/km):</label>
-                                    <input type="number" id="new-first-mile-rate" value="0.28" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">First Mile Rate ($/pallet/1,000km):</label>
+                                    <input type="number" id="new-first-mile-rate" value="5.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                 </div>
                                 <div style="margin-bottom: 15px;">
-                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">Last Mile Rate ($/pallet/km):</label>
-                                    <input type="number" id="new-last-mile-rate" value="0.48" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">Last Mile Rate ($/pallet/1,000km):</label>
+                                    <input type="number" id="new-last-mile-rate" value="9.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                 </div>
                                 <div style="margin-bottom: 15px;">
                                     <label style="display: block; font-size: 13px; margin-bottom: 5px;">Storage Rate ($/pallet/month):</label>
-                                    <input type="number" id="new-storage-rate" value="15" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <input type="number" id="new-storage-rate" value="0.30" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                 </div>
                                 <div style="margin-bottom: 20px;">
                                     <label style="display: block; font-size: 13px; margin-bottom: 5px;">DIO (days):</label>
@@ -571,6 +568,9 @@
                             <button id="save-new-scenario" style="padding: 12px 24px; background: var(--cel-green); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Save Scenario</button>
                         </div>
                     </div>
+
+                    <!-- Scenario Feed (dynamically populated) -->
+                    <div id="scenario-feed" style="margin-top: 40px;"></div>
                 </div>
             </div>
         </div>
@@ -584,6 +584,18 @@
                 tab.classList.add('active');
                 const tabName = tab.getAttribute('data-tab');
                 document.getElementById(tabName + '-tab').classList.add('active');
+
+                // Redraw canvases when switching to New Scenario tab
+                if (tabName === 'new-scenario') {
+                    setTimeout(() => {
+                        const newScenarioMapCanvas = document.getElementById('new-scenario-map');
+                        if (newScenarioMapCanvas) {
+                            resizeCanvas(newScenarioMapCanvas);
+                            const newScenarioMapCtx = newScenarioMapCanvas.getContext('2d');
+                            drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+                        }
+                    }, 50);
+                }
             });
         });
 
@@ -597,13 +609,13 @@
 
         // JavaScript code here
         const canvas = document.getElementById('map');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas ? canvas.getContext('2d') : null;
 
         // Analytics map canvases
         const canvasAnalytics1 = document.getElementById('map-analytics-1');
-        const ctxAnalytics1 = canvasAnalytics1.getContext('2d');
+        const ctxAnalytics1 = canvasAnalytics1 ? canvasAnalytics1.getContext('2d') : null;
         const canvasAnalytics2 = document.getElementById('map-analytics-2');
-        const ctxAnalytics2 = canvasAnalytics2.getContext('2d');
+        const ctxAnalytics2 = canvasAnalytics2 ? canvasAnalytics2.getContext('2d') : null;
 
         // Function to set canvas size with proper resolution
         function resizeCanvas(canvasElement) {
@@ -662,16 +674,16 @@
         }
 
         // Generate demand points
-        // Target: $1.27B NSV = 84,667 pallets/year = 7,056 pallets/month
+        // Target: ~350k pallets/month (50x scale for realistic unit costs)
         function generateDemandPoints() {
             demandPoints = [];
             const random = seededRandom(12345); // Fixed seed for consistent results
             const clusters = [
-                {center: {x: 150, y: 200}, count: 25, demandRange: [32, 90], id: 'A'},
-                {center: {x: 200, y: 450}, count: 20, demandRange: [73, 154], id: 'B'},
-                {center: {x: 180, y: 650}, count: 20, demandRange: [32, 73], id: 'C'},
-                {center: {x: 750, y: 250}, count: 15, demandRange: [40, 93], id: 'D'},
-                {center: {x: 780, y: 550}, count: 12, demandRange: [53, 126], id: 'E'}
+                {center: {x: 150, y: 200}, count: 25, demandRange: [1600, 4500], id: 'A'},
+                {center: {x: 200, y: 450}, count: 20, demandRange: [3650, 7700], id: 'B'},
+                {center: {x: 180, y: 650}, count: 20, demandRange: [1600, 3650], id: 'C'},
+                {center: {x: 750, y: 250}, count: 15, demandRange: [2000, 4650], id: 'D'},
+                {center: {x: 780, y: 550}, count: 12, demandRange: [2650, 6300], id: 'E'}
             ];
             clusters.forEach(cluster => {
                 for (let i = 0; i < cluster.count; i++) {
@@ -685,7 +697,7 @@
             for (let i = 0; i < 8; i++) {
                 const x = random() * 1000;
                 const y = random() * 800;
-                const demand = Math.floor(random() * 32 + 16);
+                const demand = Math.floor(random() * 1600 + 800);
                 demandPoints.push({x, y, demand, cluster: 'scattered', assignedDC: null, distance: 0});
             }
         }
@@ -746,8 +758,8 @@
             const activeDCs = dcLocations.filter(dc => dc.active);
             let totalTransport = 0;
             let totalStorage = 0;
-            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
-            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value) / 1000;
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value) / 1000;
             const storageRate = parseFloat(document.getElementById('storage-rate').value);
             const dio = parseInt(document.getElementById('dio').value);
 
@@ -782,6 +794,7 @@
         }
 
         function drawMapOnCanvas(context, canvasElement, dcs, demands) {
+            if (!context || !canvasElement) return;
             const rect = canvasElement.getBoundingClientRect();
             context.clearRect(0, 0, rect.width, 700);
 
@@ -809,7 +822,7 @@
                 if (dc.active) {
                     context.fillStyle = '#385D7F';
                     const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
-                    const size = Math.max(5, Math.sqrt(throughput) / 2);
+                    const size = Math.max(5, Math.sqrt(throughput) / 14);
                     context.beginPath();
                     context.arc(dc.x * scaleX, dc.y * scaleY, size, 0, 2 * Math.PI);
                     context.fill();
@@ -864,6 +877,7 @@
 
         // Tooltip function
         function setupTooltip(canvasElement, tooltipElement) {
+            if (!canvasElement || !tooltipElement) return;
             canvasElement.addEventListener('mousemove', (e) => {
                 const rect = canvasElement.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -945,27 +959,27 @@
             const activeDCs = dcs.filter(dc => dc.active);
             let totalTransport = 0;
             let totalStorage = 0;
-            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
-            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value) / 1000;
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value) / 1000;
             const storageRate = parseFloat(document.getElementById('storage-rate').value);
             const dio = parseInt(document.getElementById('dio').value);
 
             // First mile
             activeDCs.forEach(dc => {
                 const dist = distance(factory, dc);
-                const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
                 totalTransport += dist * throughput * firstMileRate * 12;
             });
 
             // Last mile & storage
             demands.forEach(point => {
-                if (point.assignedDC) {
+                if (point.assignedDC || point.assignedDCId) {
                     totalTransport += point.distance * point.demand * lastMileRate * 12;
                 }
             });
 
             activeDCs.forEach(dc => {
-                const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
                 totalStorage += throughput * (dio / 365) * storageRate * 12;
             });
 
@@ -981,9 +995,9 @@
 
             // FMCG Product Structure:
             // 1 pallet = 60 cartons × 50 pieces = 3,000 pieces
-            // NSV per piece = $5
-            // NSV per pallet = 3,000 × $5 = $15,000
-            const nsvPerPallet = 15000;
+            // NSV per piece = $0.10
+            // NSV per pallet = 3,000 × $0.10 = $300
+            const nsvPerPallet = 300;
             // NSV is annual (monthly demand × 12 months)
             const nsv = totalDemand * 12 * nsvPerPallet;
             const costPerNSV = costs.total / nsv;
@@ -998,7 +1012,7 @@
             // Annual output = monthly demand * 12
             let totalStock = 0;
             activeDCs.forEach(dc => {
-                const monthlyThroughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const monthlyThroughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
                 const annualThroughput = monthlyThroughput * 12;
                 totalStock += (dio * annualThroughput) / 365;
             });
@@ -1439,10 +1453,10 @@
             const params = document.getElementById('reference-parameters');
             params.innerHTML = `
                 <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>First Mile Rate:</strong><br>$${document.getElementById('first-mile-rate').value}/pallet/km
+                    <strong>First Mile Rate:</strong><br>$${document.getElementById('first-mile-rate').value}/pallet/1,000km
                 </div>
                 <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>Last Mile Rate:</strong><br>$${document.getElementById('last-mile-rate').value}/pallet/km
+                    <strong>Last Mile Rate:</strong><br>$${document.getElementById('last-mile-rate').value}/pallet/1,000km
                 </div>
                 <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
                     <strong>Storage Rate:</strong><br>$${document.getElementById('storage-rate').value}/pallet/month
@@ -1573,6 +1587,7 @@
                     <div style="display: flex; gap: 10px;">
                         <button class="toggle-btn" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Collapse</button>
                         <button class="hide-btn" style="padding: 8px 16px; background: #ffc107; color: white; border: none; border-radius: 4px; cursor: pointer;">Hide</button>
+                        <button class="save-btn" style="padding: 8px 16px; background: var(--cel-green); color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
                         <button class="delete-btn" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                     </div>
                 </div>
@@ -1582,8 +1597,8 @@
                         <canvas class="scenario-canvas" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></canvas>
                     </div>
                     <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>$${params.firstMile}/pallet/km</div>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>$${params.lastMile}/pallet/km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>$${params.firstMile}/pallet/1,000km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>$${params.lastMile}/pallet/1,000km</div>
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Storage Rate:</strong><br>$${params.storage}/pallet/month</div>
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>DIO:</strong><br>${params.dio} days</div>
                     </div>
@@ -1616,6 +1631,39 @@
 
             scenarioBlock.querySelector('.hide-btn').addEventListener('click', () => {
                 scenarioBlock.style.display = 'none';
+            });
+
+            scenarioBlock.querySelector('.save-btn').addEventListener('click', () => {
+                const saveName = prompt('Enter scenario name:', name);
+                if (!saveName) return;
+
+                const scenario = {
+                    name: saveName,
+                    dcActive: dcs.map(dc => dc.active),
+                    parameters: {
+                        firstMileRate: params.firstMile,
+                        lastMileRate: params.lastMile,
+                        storageRate: params.storage,
+                        dio: params.dio
+                    },
+                    demands: demands.map(p => ({cluster: p.cluster, demand: p.demand}))
+                };
+                localStorage.setItem('dno-scenario-' + saveName, JSON.stringify(scenario));
+
+                // Add to all dropdowns if not already there
+                const existingOption = document.querySelector(`option[value="${saveName}"]`);
+                if (!existingOption) {
+                    const option = document.createElement('option');
+                    option.value = saveName;
+                    option.textContent = saveName;
+                    document.getElementById('scenario-select-1').appendChild(option.cloneNode(true));
+                    document.getElementById('scenario-select-2').appendChild(option.cloneNode(true));
+                    document.getElementById('scenario-select-3').appendChild(option.cloneNode(true));
+                    document.getElementById('reference-scenario-select').appendChild(option.cloneNode(true));
+                    document.getElementById('preload-scenario-select').appendChild(option);
+                }
+
+                alert('Scenario saved as "' + saveName + '"!');
             });
 
             scenarioBlock.querySelector('.delete-btn').addEventListener('click', () => {
