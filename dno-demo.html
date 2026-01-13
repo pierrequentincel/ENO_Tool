@@ -257,7 +257,7 @@
             gap: 30px;
         }
         #map-comparison-container.two-scenarios {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
         }
         .map-container-single {
             position: relative;
@@ -356,7 +356,7 @@
         <!-- Sidebar -->
         <div id="sidebar">
             <div class="logo-section">
-                <img src="/Users/pierrequentin/Downloads/Atom_logo.png" alt="ATOM Logo">
+                <img src="ATOM logo.png" alt="ATOM Logo">
                 <div class="company-name">Acme Milk Corporate (AMC)</div>
                 <div class="project-name">Distribution Network Design</div>
             </div>
@@ -413,15 +413,15 @@
                         <h3>Parameters</h3>
                         <div class="parameter-input">
                             <label>First Mile Rate ($/pallet/km):</label>
-                            <input type="number" id="first-mile-rate" value="0.15" step="0.01">
+                            <input type="number" id="first-mile-rate" value="0.28" step="0.01">
                         </div>
                         <div class="parameter-input">
                             <label>Last Mile Rate ($/pallet/km):</label>
-                            <input type="number" id="last-mile-rate" value="0.25" step="0.01">
+                            <input type="number" id="last-mile-rate" value="0.48" step="0.01">
                         </div>
                         <div class="parameter-input">
                             <label>Storage Rate ($/pallet/month):</label>
-                            <input type="number" id="storage-rate" value="8" step="0.1">
+                            <input type="number" id="storage-rate" value="15" step="0.1">
                         </div>
                         <div class="parameter-input">
                             <label>DIO (days):</label>
@@ -441,7 +441,7 @@
         <div id="main-content">
             <div class="tabs">
                 <div class="tab active" data-tab="analytics">Analytics</div>
-                <div class="tab" data-tab="network-map">Network Map</div>
+                <div class="tab" data-tab="new-scenario">New Scenario</div>
             </div>
 
             <div class="content-area">
@@ -497,12 +497,79 @@
                     </div>
                 </div>
 
-                <!-- Network Map Tab -->
-                <div class="tab-content" id="network-map-tab">
-                    <h2 class="section-title">Network Map</h2>
-                    <div id="map-container">
-                        <canvas id="map"></canvas>
-                        <div id="tooltip"></div>
+                <!-- New Scenario Tab -->
+                <div class="tab-content" id="new-scenario-tab">
+                    <h2 class="section-title">New Scenario</h2>
+
+                    <!-- Reference Scenario Section -->
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: var(--text-dark);">Reference Scenario</h3>
+                        <select id="reference-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
+                            <option value="">Select a scenario...</option>
+                            <option value="baseline">0,5_Baseline_2028</option>
+                            <option value="optimized">Optimized</option>
+                        </select>
+                        <div id="reference-scenario-display" style="display: none;">
+                            <div class="metrics-grid" id="reference-metrics"></div>
+                            <div style="margin-top: 30px;">
+                                <canvas id="reference-map" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></canvas>
+                            </div>
+                            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;" id="reference-parameters"></div>
+                        </div>
+                    </div>
+
+                    <!-- Scenario Feed (dynamically populated) -->
+                    <div id="scenario-feed" style="margin-bottom: 40px;"></div>
+
+                    <!-- New Scenario Creator -->
+                    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text-dark);">Create New Scenario</h3>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Preload from scenario:</label>
+                            <select id="preload-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="">None</option>
+                                <option value="baseline">0,5_Baseline_2028</option>
+                                <option value="optimized">Optimized</option>
+                            </select>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 30px;">
+                            <!-- Left: Parameters and DC Selection -->
+                            <div>
+                                <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">Parameters</h4>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">First Mile Rate ($/pallet/km):</label>
+                                    <input type="number" id="new-first-mile-rate" value="0.28" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">Last Mile Rate ($/pallet/km):</label>
+                                    <input type="number" id="new-last-mile-rate" value="0.48" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">Storage Rate ($/pallet/month):</label>
+                                    <input type="number" id="new-storage-rate" value="15" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                                <div style="margin-bottom: 20px;">
+                                    <label style="display: block; font-size: 13px; margin-bottom: 5px;">DIO (days):</label>
+                                    <input type="number" id="new-dio" value="30" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+
+                                <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">DC Selection</h4>
+                                <div id="new-dc-list" style="max-height: 300px; overflow-y: auto;"></div>
+                            </div>
+
+                            <!-- Right: Map -->
+                            <div>
+                                <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">Network Preview</h4>
+                                <canvas id="new-scenario-map" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></canvas>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px; display: flex; gap: 15px;">
+                            <button id="run-new-optimization" style="padding: 12px 24px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Run Optimization</button>
+                            <button id="save-new-scenario" style="padding: 12px 24px; background: var(--cel-green); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Save Scenario</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -585,10 +652,20 @@
         };
         let scenario2 = null;
 
+        // Seeded random number generator for consistent demand generation
+        function seededRandom(seed) {
+            let state = seed;
+            return function() {
+                state = (state * 9301 + 49297) % 233280;
+                return state / 233280;
+            };
+        }
+
         // Generate demand points
         // Target: $1.27B NSV = 84,667 pallets/year = 7,056 pallets/month
         function generateDemandPoints() {
             demandPoints = [];
+            const random = seededRandom(12345); // Fixed seed for consistent results
             const clusters = [
                 {center: {x: 150, y: 200}, count: 25, demandRange: [32, 90], id: 'A'},
                 {center: {x: 200, y: 450}, count: 20, demandRange: [73, 154], id: 'B'},
@@ -598,17 +675,17 @@
             ];
             clusters.forEach(cluster => {
                 for (let i = 0; i < cluster.count; i++) {
-                    const x = cluster.center.x + (Math.random() - 0.5) * 100;
-                    const y = cluster.center.y + (Math.random() - 0.5) * 100;
-                    const demand = Math.floor(Math.random() * (cluster.demandRange[1] - cluster.demandRange[0]) + cluster.demandRange[0]);
+                    const x = cluster.center.x + (random() - 0.5) * 100;
+                    const y = cluster.center.y + (random() - 0.5) * 100;
+                    const demand = Math.floor(random() * (cluster.demandRange[1] - cluster.demandRange[0]) + cluster.demandRange[0]);
                     demandPoints.push({x, y, demand, cluster: cluster.id, assignedDC: null, distance: 0});
                 }
             });
             // Scattered
             for (let i = 0; i < 8; i++) {
-                const x = Math.random() * 1000;
-                const y = Math.random() * 800;
-                const demand = Math.floor(Math.random() * 32 + 16);
+                const x = random() * 1000;
+                const y = random() * 800;
+                const demand = Math.floor(random() * 32 + 16);
                 demandPoints.push({x, y, demand, cluster: 'scattered', assignedDC: null, distance: 0});
             }
         }
@@ -640,6 +717,26 @@
                     }
                 });
                 point.assignedDC = bestDC;
+                point.assignedDCId = bestDC ? bestDC.id : null; // Store DC ID for cloning
+                point.distance = minDist;
+            });
+        }
+
+        // Assign customers to DCs (for scenario data with separate DC arrays)
+        function assignCustomersToScenario(demands, dcs) {
+            const activeDCs = dcs.filter(dc => dc.active);
+            demands.forEach(point => {
+                let minDist = Infinity;
+                let bestDC = null;
+                activeDCs.forEach(dc => {
+                    const dist = distance(point, dc);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestDC = dc;
+                    }
+                });
+                point.assignedDC = bestDC;
+                point.assignedDCId = bestDC ? bestDC.id : null;
                 point.distance = minDist;
             });
         }
@@ -711,7 +808,7 @@
             dcs.forEach(dc => {
                 if (dc.active) {
                     context.fillStyle = '#385D7F';
-                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                    const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
                     const size = Math.max(5, Math.sqrt(throughput) / 2);
                     context.beginPath();
                     context.arc(dc.x * scaleX, dc.y * scaleY, size, 0, 2 * Math.PI);
@@ -751,9 +848,14 @@
             // Last mile
             context.strokeStyle = 'rgba(254, 80, 0, 0.5)';
             demands.forEach(point => {
-                if (point.assignedDC) {
+                let assignedDC = point.assignedDC;
+                // If assignedDC doesn't match, find by ID (for cloned scenarios)
+                if (!assignedDC || !dcs.includes(assignedDC)) {
+                    assignedDC = dcs.find(dc => dc.id === point.assignedDCId);
+                }
+                if (assignedDC) {
                     context.beginPath();
-                    context.moveTo(point.assignedDC.x * scaleX, point.assignedDC.y * scaleY);
+                    context.moveTo(assignedDC.x * scaleX, assignedDC.y * scaleY);
                     context.lineTo(point.x * scaleX, point.y * scaleY);
                     context.stroke();
                 }
@@ -928,24 +1030,24 @@
                 <div class="metric-card">
                     <div class="metric-label">Net Sales</div>
                     <div class="metric-sublabel">Volume</div>
-                    <div class="metric-value">${(totalDemand / 1000).toFixed(0)}</div>
+                    <div class="metric-value">${(totalDemand / 1000).toFixed(2)}</div>
                     <div class="metric-sublabel" style="margin-top:5px">(k Pallets)</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Cost-to-Serve</div>
-                    <div class="metric-sublabel">(k USD)</div>
-                    <div class="metric-value">${(costs.total / 1000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-value">${(costs.total / 1000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Unit Cost-to-</div>
                     <div class="metric-sublabel">Serve</div>
-                    <div class="metric-value">${unitCostToServe.toFixed(2)}</div>
+                    <div class="metric-value">${Math.round(unitCostToServe).toLocaleString()}</div>
                     <div class="metric-sublabel" style="margin-top:5px">(USD/Pallet)</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">IOC</div>
-                    <div class="metric-sublabel">(k USD)</div>
-                    <div class="metric-value">${(ioc / 1000).toFixed(0)}</div>
+                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-value">${(ioc / 1000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">DIO</div>
@@ -986,12 +1088,17 @@
                 // Resize canvases after making them visible
                 setTimeout(() => {
                     resizeCanvas(canvasAnalytics2);
-                    drawMap();
+                    // Force redraw of both maps
+                    drawMapOnCanvas(ctxAnalytics1, canvasAnalytics1, scenario1.dcLocations, scenario1.demandPoints);
+                    drawMapOnCanvas(ctxAnalytics2, canvasAnalytics2, scenario2.dcLocations, scenario2.demandPoints);
                 }, 50);
             } else {
                 document.getElementById('scenario-2-section').style.display = 'none';
                 document.getElementById('map-container-analytics-2').style.display = 'none';
                 document.getElementById('map-comparison-container').classList.remove('two-scenarios');
+                // Clear the second canvas
+                const rect = canvasAnalytics2.getBoundingClientRect();
+                ctxAnalytics2.clearRect(0, 0, rect.width, 700);
             }
 
             // Update charts
@@ -1080,6 +1187,8 @@
         // Initialize scenario 1 with current state
         scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
         scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
+        // Re-assign customers to restore object references
+        assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
 
         drawMap();
         updateResults();
@@ -1176,20 +1285,7 @@
                 });
 
                 // Assign customers with temp data
-                const activeDCs = tempDcLocations.filter(dc => dc.active);
-                tempDemandPoints.forEach(point => {
-                    let minDist = Infinity;
-                    let bestDC = null;
-                    activeDCs.forEach(dc => {
-                        const dist = distance(point, dc);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            bestDC = dc;
-                        }
-                    });
-                    point.assignedDC = bestDC;
-                    point.distance = minDist;
-                });
+                assignCustomersToScenario(tempDemandPoints, tempDcLocations);
 
                 // Greedy optimization
                 let improved = true;
@@ -1203,20 +1299,7 @@
                         tempDcLocations[i].active = false;
 
                         // Re-assign
-                        const newActiveDCs = tempDcLocations.filter(dc => dc.active);
-                        tempDemandPoints.forEach(point => {
-                            let minDist = Infinity;
-                            let bestDC = null;
-                            newActiveDCs.forEach(dc => {
-                                const dist = distance(point, dc);
-                                if (dist < minDist) {
-                                    minDist = dist;
-                                    bestDC = dc;
-                                }
-                            });
-                            point.assignedDC = bestDC;
-                            point.distance = minDist;
-                        });
+                        assignCustomersToScenario(tempDemandPoints, tempDcLocations);
 
                         // Check if this is better - simplified cost check
                         const allAssigned = tempDemandPoints.every(p => p.assignedDC !== null);
@@ -1230,20 +1313,7 @@
                 }
 
                 // Final assignment
-                const finalActiveDCs = tempDcLocations.filter(dc => dc.active);
-                tempDemandPoints.forEach(point => {
-                    let minDist = Infinity;
-                    let bestDC = null;
-                    finalActiveDCs.forEach(dc => {
-                        const dist = distance(point, dc);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            bestDC = dc;
-                        }
-                    });
-                    point.assignedDC = bestDC;
-                    point.distance = minDist;
-                });
+                assignCustomersToScenario(tempDemandPoints, tempDcLocations);
             } else {
                 // Load saved scenario
                 const savedScenario = JSON.parse(localStorage.getItem('dno-scenario-' + scenarioValue));
@@ -1255,21 +1325,8 @@
                 }
             }
 
-            // Assign customers for temp data
-            const activeDCs = tempDcLocations.filter(dc => dc.active);
-            tempDemandPoints.forEach(point => {
-                let minDist = Infinity;
-                let bestDC = null;
-                activeDCs.forEach(dc => {
-                    const dist = distance(point, dc);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        bestDC = dc;
-                    }
-                });
-                point.assignedDC = bestDC;
-                point.distance = minDist;
-            });
+            // Assign customers for temp data using the scenario-specific function
+            assignCustomersToScenario(tempDemandPoints, tempDcLocations);
 
             return {
                 demandPoints: tempDemandPoints,
@@ -1312,6 +1369,267 @@
             drawMap();
             updateResults();
         });
+
+        // ===== NEW SCENARIO TAB IMPLEMENTATION =====
+
+        // New working state for scenario creator
+        let newScenarioDCs = JSON.parse(JSON.stringify(dcLocations));
+        let newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
+        let scenarioFeedCounter = 0;
+
+        // Initialize New Scenario tab canvases
+        const referenceMapCanvas = document.getElementById('reference-map');
+        const referenceMapCtx = referenceMapCanvas.getContext('2d');
+        const newScenarioMapCanvas = document.getElementById('new-scenario-map');
+        const newScenarioMapCtx = newScenarioMapCanvas.getContext('2d');
+
+        // Initialize DC list for new scenario creator
+        const newDCList = document.getElementById('new-dc-list');
+        newScenarioDCs.forEach(dc => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px; font-size: 13px;';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'new-' + dc.id;
+            checkbox.checked = dc.active;
+            checkbox.style.marginRight = '8px';
+            checkbox.addEventListener('change', () => {
+                dc.active = checkbox.checked;
+                assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+                resizeCanvas(newScenarioMapCanvas);
+                drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+            });
+            const label = document.createElement('label');
+            label.htmlFor = 'new-' + dc.id;
+            label.textContent = dc.name;
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            newDCList.appendChild(div);
+        });
+
+        // Initial assignment and draw for new scenario
+        assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+        resizeCanvas(newScenarioMapCanvas);
+        drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+
+        // Reference Scenario select handler
+        document.getElementById('reference-scenario-select').addEventListener('change', (e) => {
+            if (e.target.value === '') {
+                document.getElementById('reference-scenario-display').style.display = 'none';
+                return;
+            }
+
+            const refScenario = loadScenario(e.target.value, e.target.options[e.target.selectedIndex].text);
+
+            // Show display
+            document.getElementById('reference-scenario-display').style.display = 'block';
+
+            // Generate metrics
+            document.getElementById('reference-metrics').innerHTML = generateMetricsHTML(
+                refScenario.dcLocations,
+                refScenario.demandPoints,
+                refScenario.name
+            );
+
+            // Draw map
+            resizeCanvas(referenceMapCanvas);
+            drawMapOnCanvas(referenceMapCtx, referenceMapCanvas, refScenario.dcLocations, refScenario.demandPoints);
+
+            // Display parameters
+            const params = document.getElementById('reference-parameters');
+            params.innerHTML = `
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>First Mile Rate:</strong><br>$${document.getElementById('first-mile-rate').value}/pallet/km
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>Last Mile Rate:</strong><br>$${document.getElementById('last-mile-rate').value}/pallet/km
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>Storage Rate:</strong><br>$${document.getElementById('storage-rate').value}/pallet/month
+                </div>
+                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>DIO:</strong><br>${document.getElementById('dio').value} days
+                </div>
+            `;
+        });
+
+        // Preload scenario handler
+        document.getElementById('preload-scenario-select').addEventListener('change', (e) => {
+            if (e.target.value === '') return;
+
+            const preloadScenario = loadScenario(e.target.value, e.target.options[e.target.selectedIndex].text);
+
+            // Update DCs
+            newScenarioDCs = JSON.parse(JSON.stringify(preloadScenario.dcLocations));
+            newScenarioDemands = JSON.parse(JSON.stringify(preloadScenario.demandPoints));
+
+            // Update checkboxes
+            newScenarioDCs.forEach(dc => {
+                const checkbox = document.getElementById('new-' + dc.id);
+                if (checkbox) checkbox.checked = dc.active;
+            });
+
+            // Update parameters
+            document.getElementById('new-first-mile-rate').value = document.getElementById('first-mile-rate').value;
+            document.getElementById('new-last-mile-rate').value = document.getElementById('last-mile-rate').value;
+            document.getElementById('new-storage-rate').value = document.getElementById('storage-rate').value;
+            document.getElementById('new-dio').value = document.getElementById('dio').value;
+
+            // Redraw
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            resizeCanvas(newScenarioMapCanvas);
+            drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+        });
+
+        // Run Optimization handler
+        document.getElementById('run-new-optimization').addEventListener('click', () => {
+            scenarioFeedCounter++;
+            const scenarioName = 'Run_' + scenarioFeedCounter + '_' + new Date().toLocaleTimeString();
+
+            // Clone current state
+            const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
+            const runDemands = JSON.parse(JSON.stringify(demandPoints));
+
+            // Get parameters
+            const firstMile = parseFloat(document.getElementById('new-first-mile-rate').value);
+            const lastMile = parseFloat(document.getElementById('new-last-mile-rate').value);
+            const storage = parseFloat(document.getElementById('new-storage-rate').value);
+            const dio = parseInt(document.getElementById('new-dio').value);
+
+            // Run optimization - try closing DCs to minimize cost
+            let improved = true;
+            let iterations = 0;
+            while (improved && iterations < 10) {
+                improved = false;
+                iterations++;
+                for (let i = 0; i < runDCs.length; i++) {
+                    if (!runDCs[i].active) continue;
+
+                    // Try closing this DC
+                    runDCs[i].active = false;
+                    assignCustomersToScenario(runDemands, runDCs);
+
+                    // Check if all assigned
+                    const allAssigned = runDemands.every(p => p.assignedDC !== null);
+                    if (!allAssigned) {
+                        runDCs[i].active = true;
+                    } else {
+                        improved = true;
+                        break;
+                    }
+                }
+            }
+
+            // Final assignment
+            assignCustomersToScenario(runDemands, runDCs);
+
+            // Add to scenario feed
+            addScenarioToFeed(scenarioName, runDCs, runDemands, {firstMile, lastMile, storage, dio});
+        });
+
+        // Save Scenario handler
+        document.getElementById('save-new-scenario').addEventListener('click', () => {
+            const name = prompt('Enter scenario name:');
+            if (!name) return;
+
+            const scenario = {
+                name,
+                dcActive: newScenarioDCs.map(dc => dc.active),
+                parameters: {
+                    firstMileRate: document.getElementById('new-first-mile-rate').value,
+                    lastMileRate: document.getElementById('new-last-mile-rate').value,
+                    storageRate: document.getElementById('new-storage-rate').value,
+                    dio: document.getElementById('new-dio').value
+                },
+                demands: demandPoints.map(p => ({cluster: p.cluster, demand: p.demand}))
+            };
+            localStorage.setItem('dno-scenario-' + name, JSON.stringify(scenario));
+
+            // Add to all dropdowns
+            const option1 = document.createElement('option');
+            option1.value = name;
+            option1.textContent = name;
+            document.getElementById('scenario-select-1').appendChild(option1.cloneNode(true));
+            document.getElementById('scenario-select-2').appendChild(option1.cloneNode(true));
+            document.getElementById('scenario-select-3').appendChild(option1.cloneNode(true));
+            document.getElementById('reference-scenario-select').appendChild(option1.cloneNode(true));
+            document.getElementById('preload-scenario-select').appendChild(option1);
+
+            alert('Scenario saved!');
+        });
+
+        // Function to add scenario to feed
+        function addScenarioToFeed(name, dcs, demands, params) {
+            const feed = document.getElementById('scenario-feed');
+            const scenarioId = 'scenario-' + Date.now();
+
+            const scenarioBlock = document.createElement('div');
+            scenarioBlock.id = scenarioId;
+            scenarioBlock.style.cssText = 'background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;';
+
+            scenarioBlock.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin: 0;">${name}</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="toggle-btn" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Collapse</button>
+                        <button class="hide-btn" style="padding: 8px 16px; background: #ffc107; color: white; border: none; border-radius: 4px; cursor: pointer;">Hide</button>
+                        <button class="delete-btn" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+                    </div>
+                </div>
+                <div class="scenario-content">
+                    <div class="metrics-grid scenario-metrics"></div>
+                    <div style="margin-top: 30px;">
+                        <canvas class="scenario-canvas" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></canvas>
+                    </div>
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>$${params.firstMile}/pallet/km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>$${params.lastMile}/pallet/km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Storage Rate:</strong><br>$${params.storage}/pallet/month</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>DIO:</strong><br>${params.dio} days</div>
+                    </div>
+                </div>
+            `;
+
+            feed.appendChild(scenarioBlock);
+
+            // Generate metrics
+            const metricsGrid = scenarioBlock.querySelector('.scenario-metrics');
+            metricsGrid.innerHTML = generateMetricsHTML(dcs, demands, name);
+
+            // Draw map
+            const canvas = scenarioBlock.querySelector('.scenario-canvas');
+            const ctx = canvas.getContext('2d');
+            resizeCanvas(canvas);
+            drawMapOnCanvas(ctx, canvas, dcs, demands);
+
+            // Add event listeners
+            scenarioBlock.querySelector('.toggle-btn').addEventListener('click', function() {
+                const content = scenarioBlock.querySelector('.scenario-content');
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    this.textContent = 'Collapse';
+                } else {
+                    content.style.display = 'none';
+                    this.textContent = 'Expand';
+                }
+            });
+
+            scenarioBlock.querySelector('.hide-btn').addEventListener('click', () => {
+                scenarioBlock.style.display = 'none';
+            });
+
+            scenarioBlock.querySelector('.delete-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this scenario? This cannot be undone.')) {
+                    scenarioBlock.remove();
+                    // Remove from localStorage if it was saved
+                    localStorage.removeItem('dno-scenario-' + name);
+                    // Remove from dropdowns
+                    document.querySelectorAll('option').forEach(opt => {
+                        if (opt.value === name) opt.remove();
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>
