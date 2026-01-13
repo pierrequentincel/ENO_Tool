@@ -1752,6 +1752,15 @@
                 };
                 localStorage.setItem('dno-scenario-' + saveName, JSON.stringify(scenario));
 
+                // Update the scenario block heading to reflect the saved name
+                const heading = scenarioBlock.querySelector('h3');
+                if (heading) {
+                    heading.textContent = saveName;
+                }
+
+                // Update the internal name variable for future operations
+                name = saveName;
+
                 // Add to all dropdowns if not already there
                 const existingOption = document.querySelector(`option[value="${saveName}"]`);
                 if (!existingOption) {
