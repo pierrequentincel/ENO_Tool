@@ -551,7 +551,11 @@
                                 </div>
 
                                 <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">DC Selection</h4>
-                                <div id="new-dc-list" style="max-height: 300px; overflow-y: auto;"></div>
+                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                    <button id="select-all-dcs" style="flex: 1; padding: 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Select All</button>
+                                    <button id="clear-all-dcs" style="flex: 1; padding: 8px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Clear All</button>
+                                </div>
+                                <div id="new-dc-list" style="max-height: 350px; overflow-y: auto;"></div>
                             </div>
 
                             <!-- Right: Map -->
@@ -1390,6 +1394,24 @@
 
         // Initial checkbox setup
         reinitializeNewScenarioCheckboxes();
+
+        // Select All button handler
+        document.getElementById('select-all-dcs').addEventListener('click', () => {
+            newScenarioDCs.forEach(dc => dc.active = true);
+            reinitializeNewScenarioCheckboxes();
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            resizeCanvas(newScenarioMapCanvas);
+            drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+        });
+
+        // Clear All button handler
+        document.getElementById('clear-all-dcs').addEventListener('click', () => {
+            newScenarioDCs.forEach(dc => dc.active = false);
+            reinitializeNewScenarioCheckboxes();
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            resizeCanvas(newScenarioMapCanvas);
+            drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+        });
 
         // Initial assignment and draw for new scenario
         assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
