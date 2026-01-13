@@ -847,14 +847,18 @@
 
             // Flows
             const activeDCs = dcs.filter(dc => dc.active);
-            // First mile
+            // First mile - only draw links for DCs with actual throughput
             context.strokeStyle = 'rgba(56, 93, 127, 0.5)';
             context.lineWidth = 2;
             activeDCs.forEach(dc => {
-                context.beginPath();
-                context.moveTo(factory.x * scaleX, factory.y * scaleY);
-                context.lineTo(dc.x * scaleX, dc.y * scaleY);
-                context.stroke();
+                // Check if this DC has any customers assigned to it
+                const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
+                if (throughput > 0) {
+                    context.beginPath();
+                    context.moveTo(factory.x * scaleX, factory.y * scaleY);
+                    context.lineTo(dc.x * scaleX, dc.y * scaleY);
+                    context.stroke();
+                }
             });
             // Last mile
             context.strokeStyle = 'rgba(254, 80, 0, 0.5)';
