@@ -1789,6 +1789,51 @@
                 }
             });
         }
+
+        // Function to restore saved scenarios from localStorage on page load
+        function restoreSavedScenarios() {
+            // Find all saved scenarios in localStorage
+            const savedScenarios = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('dno-scenario-')) {
+                    const scenarioName = key.replace('dno-scenario-', '');
+                    const scenarioData = JSON.parse(localStorage.getItem(key));
+                    savedScenarios.push({ name: scenarioName, data: scenarioData });
+                }
+            }
+
+            // Restore each scenario to the feed
+            savedScenarios.forEach(({ name, data }) => {
+                // Reconstruct DC locations with active states
+                const dcs = JSON.parse(JSON.stringify(dcLocations));
+                dcs.forEach((dc, index) => {
+                    if (data.dcActive && data.dcActive[index] !== undefined) {
+                        dc.active = data.dcActive[index];
+                    }
+                });
+
+                // Use current demand points (they're generated with a fixed seed)
+                const demands = JSON.parse(JSON.stringify(demandPoints));
+
+                // Assign customers to DCs
+                assignCustomersToScenario(demands, dcs);
+
+                // Extract parameters
+                const params = {
+                    firstMile: parseFloat(data.parameters.firstMileRate),
+                    lastMile: parseFloat(data.parameters.lastMileRate),
+                    storage: parseFloat(data.parameters.storageRate),
+                    dio: parseInt(data.parameters.dio)
+                };
+
+                // Add to scenario feed
+                addScenarioToFeed(name, dcs, demands, params);
+            });
+        }
+
+        // Restore saved scenarios when page loads
+        restoreSavedScenarios();
     </script>
 </body>
 </html>
