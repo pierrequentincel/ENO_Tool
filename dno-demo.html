@@ -370,21 +370,18 @@
                 <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px;">First Scenario:</label>
                 <select class="scenario-select" id="scenario-select-1">
                     <option value="baseline">0,5_Baseline_2028</option>
-                    <option value="optimized">Optimized</option>
                 </select>
 
                 <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Second Scenario:</label>
                 <select class="scenario-select" id="scenario-select-2">
                     <option value="">Choose an option</option>
                     <option value="baseline">0,5_Baseline_2028</option>
-                    <option value="optimized">Optimized</option>
                 </select>
 
                 <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Third Scenario:</label>
                 <select class="scenario-select" id="scenario-select-3">
                     <option value="">Choose an option</option>
                     <option value="baseline">0,5_Baseline_2028</option>
-                    <option value="optimized">Optimized</option>
                 </select>
             </div>
 
@@ -507,8 +504,7 @@
                         <select id="reference-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 20px;">
                             <option value="">Select a scenario...</option>
                             <option value="baseline">0,5_Baseline_2028</option>
-                            <option value="optimized">Optimized</option>
-                        </select>
+                                </select>
                         <div id="reference-scenario-display" style="display: none;">
                             <div class="metrics-grid" id="reference-metrics"></div>
                             <div style="margin-top: 30px;">
@@ -528,7 +524,6 @@
                                 <select id="preload-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
                                     <option value="">None</option>
                                     <option value="baseline">0,5_Baseline_2028</option>
-                                    <option value="optimized">Optimized</option>
                                 </select>
                                 <button id="reset-to-preloaded" style="display: none; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Reset to preloaded</button>
                             </div>
@@ -1292,42 +1287,6 @@
 
             if (scenarioValue === 'baseline') {
                 tempDcLocations.forEach((dc, i) => dc.active = [0,2,4,6,8].includes(i));
-            } else if (scenarioValue === 'optimized') {
-                // Apply optimization to temp data
-                tempDcLocations.forEach(dc => {
-                    dc.active = distance(factory, dc) <= 4000;
-                });
-
-                // Assign customers with temp data
-                assignCustomersToScenario(tempDemandPoints, tempDcLocations);
-
-                // Greedy optimization
-                let improved = true;
-                let iterations = 0;
-                while (improved && iterations < 10) {
-                    improved = false;
-                    iterations++;
-                    const activeDCs = tempDcLocations.filter(dc => dc.active);
-                    for (let i = 0; i < tempDcLocations.length; i++) {
-                        if (!tempDcLocations[i].active) continue;
-                        tempDcLocations[i].active = false;
-
-                        // Re-assign
-                        assignCustomersToScenario(tempDemandPoints, tempDcLocations);
-
-                        // Check if this is better - simplified cost check
-                        const allAssigned = tempDemandPoints.every(p => p.assignedDC !== null);
-                        if (!allAssigned) {
-                            tempDcLocations[i].active = true;
-                        } else {
-                            improved = true;
-                            break;
-                        }
-                    }
-                }
-
-                // Final assignment
-                assignCustomersToScenario(tempDemandPoints, tempDcLocations);
             } else {
                 // Load saved scenario
                 const savedScenario = JSON.parse(localStorage.getItem('dno-scenario-' + scenarioValue));
