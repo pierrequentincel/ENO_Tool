@@ -1557,12 +1557,50 @@
             const storage = parseFloat(document.getElementById('new-storage-rate').value);
             const dio = parseInt(document.getElementById('new-dio').value);
 
+            // Helper function to calculate total cost for a scenario configuration
+            function calculateScenarioCost(dcs, demands, firstMileRate, lastMileRate, storageRate, dioValue) {
+                const activeDCs = dcs.filter(dc => dc.active);
+                let totalTransport = 0;
+                let totalStorage = 0;
+                const firstMile = firstMileRate / 1000;
+                const lastMile = lastMileRate / 1000;
+
+                // First mile
+                activeDCs.forEach(dc => {
+                    const dist = distance(factory, dc);
+                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                    totalTransport += dist * throughput * firstMile * 12;
+                });
+
+                // Last mile
+                demands.forEach(point => {
+                    if (point.assignedDC) {
+                        totalTransport += point.distance * point.demand * lastMile * 12;
+                    }
+                });
+
+                // Storage
+                activeDCs.forEach(dc => {
+                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                    totalStorage += throughput * (dioValue / 365) * storageRate * 12;
+                });
+
+                return totalTransport + totalStorage;
+            }
+
+            // Initial assignment with current DC configuration
+            assignCustomersToScenario(runDemands, runDCs);
+            let currentCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
+
             // Run optimization - try closing DCs to minimize cost
             let improved = true;
             let iterations = 0;
             while (improved && iterations < 10) {
                 improved = false;
                 iterations++;
+                let bestSavings = 0;
+                let bestDCToClose = -1;
+
                 for (let i = 0; i < runDCs.length; i++) {
                     if (!runDCs[i].active) continue;
 
@@ -1570,14 +1608,31 @@
                     runDCs[i].active = false;
                     assignCustomersToScenario(runDemands, runDCs);
 
-                    // Check if all assigned
+                    // Check if all customers can still be assigned
                     const allAssigned = runDemands.every(p => p.assignedDC !== null);
-                    if (!allAssigned) {
-                        runDCs[i].active = true;
-                    } else {
-                        improved = true;
-                        break;
+
+                    if (allAssigned) {
+                        // Calculate new cost
+                        const newCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
+                        const savings = currentCost - newCost;
+
+                        // If closing this DC saves money, track it
+                        if (savings > bestSavings) {
+                            bestSavings = savings;
+                            bestDCToClose = i;
+                        }
                     }
+
+                    // Reopen the DC for now
+                    runDCs[i].active = true;
+                }
+
+                // If we found a DC that saves money when closed, close it
+                if (bestDCToClose >= 0) {
+                    runDCs[bestDCToClose].active = false;
+                    assignCustomersToScenario(runDemands, runDCs);
+                    currentCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
+                    improved = true;
                 }
             }
 
