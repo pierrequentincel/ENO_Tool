@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOM - Distribution Network Design</title>
+    <style>
+        :root {
+            --cel-red: #CB333B;
+            --cel-blue: #385D7F;
+            --cel-dark-blue: #2c4a5f;
+            --cel-orange: #FE5000;
+            --cel-green: #30B700;
+            --cel-yellow: #FFD100;
+            --bg-light: #F5F7FA;
+            --text-dark: #2D3748;
+            --sidebar-bg: #4A6883;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 30px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-section img {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .project-name {
+            font-size: 14px;
+            opacity: 0.9;
+            border-top: 2px solid rgba(255,255,255,0.3);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+        .sidebar-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .scenario-select, .unit-select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: white;
+            color: var(--text-dark);
+            font-size: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .sidebar-button {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sidebar-button:hover {
+            background-color: rgba(255,255,255,0.3);
+        }
+        .sidebar-button.primary {
+            background-color: var(--cel-blue);
+            border-color: var(--cel-blue);
+        }
+        .sidebar-button.primary:hover {
+            background-color: var(--cel-dark-blue);
+        }
+
+        /* Main Content */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #64748b;
+        }
+        .tab.active {
+            color: var(--cel-blue);
+            border-bottom-color: var(--cel-blue);
+        }
+        .tab:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Key Metrics */
+        .section-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--cel-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--cel-blue);
+        }
+        .scenario-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+        .metric-card {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-sublabel {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cel-blue);
+        }
+        .metric-tag {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background-color: #e2e8f0;
+            color: #64748b;
+            font-size: 11px;
+            border-radius: 12px;
+        }
+
+        /* Cost Breakdown */
+        .cost-breakdown {
+            margin-top: 40px;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .chart-wrapper {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        /* Map Container */
+        #map-container, #map-container-analytics {
+            position: relative;
+            width: 100%;
+            height: 700px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #map, #map-analytics {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+        .network-map-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Map Comparison Container */
+        #map-comparison-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        #map-comparison-container.two-scenarios {
+            grid-template-columns: 1fr 1fr;
+        }
+        .map-container-single {
+            position: relative;
+            width: 100%;
+            height: 700px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .map-container-single canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+        .map-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(74, 104, 131, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 5;
+        }
+        #tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 12px;
+        }
+
+        /* Settings Expander */
+        .settings-expander {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .settings-toggle {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .settings-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .settings-content.expanded {
+            max-height: 800px;
+        }
+        .parameter-input {
+            margin-bottom: 15px;
+        }
+        .parameter-input label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        .parameter-input input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .dc-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .dc-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .dc-checkbox input {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div class="logo-section">
+                <img src="/Users/pierrequentin/Downloads/Atom_logo.png" alt="ATOM Logo">
+                <div class="company-name">Acme Milk Corporate (AMC)</div>
+                <div class="project-name">Distribution Network Design</div>
+            </div>
+
+            <button class="sidebar-button primary">
+                ℹ️ Scenario Comparison
+            </button>
+
+            <div class="sidebar-section">
+                <h3>Scenario Selection</h3>
+                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px;">First Scenario:</label>
+                <select class="scenario-select" id="scenario-select-1">
+                    <option value="baseline">0,5_Baseline_2028</option>
+                    <option value="optimized">Optimized</option>
+                </select>
+
+                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Second Scenario:</label>
+                <select class="scenario-select" id="scenario-select-2">
+                    <option value="">Choose an option</option>
+                    <option value="baseline">0,5_Baseline_2028</option>
+                    <option value="optimized">Optimized</option>
+                </select>
+
+                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Third Scenario:</label>
+                <select class="scenario-select" id="scenario-select-3">
+                    <option value="">Choose an option</option>
+                    <option value="baseline">0,5_Baseline_2028</option>
+                    <option value="optimized">Optimized</option>
+                </select>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Unit Selection</h3>
+                <select class="unit-select" id="unit-select">
+                    <option value="usd">US Dollar (USD)</option>
+                    <option value="eur">Euro (EUR)</option>
+                </select>
+            </div>
+
+            <button class="sidebar-button" id="run-optimization">
+                🔄 Run Optimization
+            </button>
+            <button class="sidebar-button" id="save-scenario">
+                💾 Save Scenario
+            </button>
+
+            <div class="settings-expander">
+                <div class="settings-toggle" id="settings-toggle">
+                    <span>⚙️ Advanced Settings</span>
+                    <span id="toggle-icon">▼</span>
+                </div>
+                <div class="settings-content" id="settings-content">
+                    <div class="sidebar-section">
+                        <h3>Parameters</h3>
+                        <div class="parameter-input">
+                            <label>First Mile Rate ($/pallet/km):</label>
+                            <input type="number" id="first-mile-rate" value="0.15" step="0.01">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Last Mile Rate ($/pallet/km):</label>
+                            <input type="number" id="last-mile-rate" value="0.25" step="0.01">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Storage Rate ($/pallet/month):</label>
+                            <input type="number" id="storage-rate" value="8" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>DIO (days):</label>
+                            <input type="number" id="dio" value="30">
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3>DC Selection</h3>
+                        <div class="dc-list" id="dc-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content">
+            <div class="tabs">
+                <div class="tab active" data-tab="analytics">Analytics</div>
+                <div class="tab" data-tab="network-map">Network Map</div>
+            </div>
+
+            <div class="content-area">
+                <!-- Analytics Tab -->
+                <div class="tab-content active" id="analytics-tab">
+                    <h2 class="section-title">Key Metrics</h2>
+
+                    <!-- Scenario 1 -->
+                    <div class="scenario-label" id="scenario-label-1">0,5_Baseline_2028</div>
+                    <div class="metrics-grid" id="metrics-grid-1">
+                        <!-- Metrics will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Scenario 2 (hidden by default) -->
+                    <div id="scenario-2-section" style="display: none;">
+                        <div class="scenario-label" id="scenario-label-2">Scenario 2</div>
+                        <div class="metrics-grid" id="metrics-grid-2">
+                            <!-- Metrics will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="network-map-section">
+                        <h2 class="section-title">Network Map</h2>
+                        <div id="map-comparison-container">
+                            <!-- Scenario 1 Map -->
+                            <div id="map-container-analytics-1" class="map-container-single">
+                                <div class="map-label">Scenario 1</div>
+                                <canvas id="map-analytics-1"></canvas>
+                                <div id="tooltip-analytics-1" style="position: absolute; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 4px; display: none; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 12px;"></div>
+                            </div>
+
+                            <!-- Scenario 2 Map (hidden by default) -->
+                            <div id="map-container-analytics-2" class="map-container-single" style="display: none;">
+                                <div class="map-label">Scenario 2</div>
+                                <canvas id="map-analytics-2"></canvas>
+                                <div id="tooltip-analytics-2" style="position: absolute; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 4px; display: none; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cost-breakdown">
+                        <h2 class="section-title">Cost Breakdown</h2>
+                        <div class="charts-container">
+                            <div class="chart-wrapper">
+                                <div class="chart-title">Absolute Logistics Cost Breakdown</div>
+                                <canvas id="absolute-chart" width="400" height="300"></canvas>
+                            </div>
+                            <div class="chart-wrapper">
+                                <div class="chart-title">Relative Logistics Cost Breakdown</div>
+                                <canvas id="relative-chart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Map Tab -->
+                <div class="tab-content" id="network-map-tab">
+                    <h2 class="section-title">Network Map</h2>
+                    <div id="map-container">
+                        <canvas id="map"></canvas>
+                        <div id="tooltip"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                tab.classList.add('active');
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(tabName + '-tab').classList.add('active');
+            });
+        });
+
+        // Settings toggle
+        document.getElementById('settings-toggle').addEventListener('click', () => {
+            const content = document.getElementById('settings-content');
+            const icon = document.getElementById('toggle-icon');
+            content.classList.toggle('expanded');
+            icon.textContent = content.classList.contains('expanded') ? '▲' : '▼';
+        });
+
+        // JavaScript code here
+        const canvas = document.getElementById('map');
+        const ctx = canvas.getContext('2d');
+
+        // Analytics map canvases
+        const canvasAnalytics1 = document.getElementById('map-analytics-1');
+        const ctxAnalytics1 = canvasAnalytics1.getContext('2d');
+        const canvasAnalytics2 = document.getElementById('map-analytics-2');
+        const ctxAnalytics2 = canvasAnalytics2.getContext('2d');
+
+        // Function to set canvas size with proper resolution
+        function resizeCanvas(canvasElement) {
+            if (!canvasElement) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvasElement.parentElement.getBoundingClientRect();
+
+            canvasElement.width = rect.width * dpr;
+            canvasElement.height = 700 * dpr;
+
+            canvasElement.style.width = rect.width + 'px';
+            canvasElement.style.height = '700px';
+
+            const context = canvasElement.getContext('2d');
+            context.scale(dpr, dpr);
+        }
+
+        // Initialize canvas sizes
+        resizeCanvas(canvas);
+        resizeCanvas(canvasAnalytics1);
+        resizeCanvas(canvasAnalytics2);
+
+        // Data structures
+        let demandPoints = [];
+        let dcLocations = [
+            {id: 'DC1', name: 'North Hub', x: 120, y: 180, active: true},
+            {id: 'DC2', name: 'North Secondary', x: 200, y: 250, active: false},
+            {id: 'DC3', name: 'Central Prime', x: 180, y: 420, active: true},
+            {id: 'DC4', name: 'Central West', x: 100, y: 480, active: false},
+            {id: 'DC5', name: 'South Hub', x: 160, y: 680, active: true},
+            {id: 'DC6', name: 'South Port', x: 250, y: 720, active: false},
+            {id: 'DC7', name: 'Island North', x: 700, y: 230, active: true},
+            {id: 'DC8', name: 'Island Central', x: 720, y: 400, active: false},
+            {id: 'DC9', name: 'Island South', x: 750, y: 580, active: true},
+            {id: 'DC10', name: 'Mainland East', x: 350, y: 350, active: false},
+            {id: 'DC11', name: 'Remote North', x: 400, y: 100, active: false},
+            {id: 'DC12', name: 'Island Port', x: 600, y: 450, active: false}
+        ];
+        const factory = {x: 50, y: 400};
+
+        // Scenario storage
+        let scenario1 = {
+            demandPoints: [],
+            dcLocations: JSON.parse(JSON.stringify(dcLocations)),
+            name: '0,5_Baseline_2028'
+        };
+        let scenario2 = null;
+
+        // Generate demand points
+        // Target: $1.27B NSV = 84,667 pallets/year = 7,056 pallets/month
+        function generateDemandPoints() {
+            demandPoints = [];
+            const clusters = [
+                {center: {x: 150, y: 200}, count: 25, demandRange: [32, 90], id: 'A'},
+                {center: {x: 200, y: 450}, count: 20, demandRange: [73, 154], id: 'B'},
+                {center: {x: 180, y: 650}, count: 20, demandRange: [32, 73], id: 'C'},
+                {center: {x: 750, y: 250}, count: 15, demandRange: [40, 93], id: 'D'},
+                {center: {x: 780, y: 550}, count: 12, demandRange: [53, 126], id: 'E'}
+            ];
+            clusters.forEach(cluster => {
+                for (let i = 0; i < cluster.count; i++) {
+                    const x = cluster.center.x + (Math.random() - 0.5) * 100;
+                    const y = cluster.center.y + (Math.random() - 0.5) * 100;
+                    const demand = Math.floor(Math.random() * (cluster.demandRange[1] - cluster.demandRange[0]) + cluster.demandRange[0]);
+                    demandPoints.push({x, y, demand, cluster: cluster.id, assignedDC: null, distance: 0});
+                }
+            });
+            // Scattered
+            for (let i = 0; i < 8; i++) {
+                const x = Math.random() * 1000;
+                const y = Math.random() * 800;
+                const demand = Math.floor(Math.random() * 32 + 16);
+                demandPoints.push({x, y, demand, cluster: 'scattered', assignedDC: null, distance: 0});
+            }
+        }
+
+        // Distance calculation
+        function distance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            let dist = Math.sqrt(dx*dx + dy*dy) * 5; // 1 unit = 5 km
+            // Check if crosses water (water between x=450-550)
+            const waterStart = 450;
+            const waterEnd = 550;
+            const crossesWater = (p1.x < waterStart && p2.x > waterEnd) || (p1.x > waterEnd && p2.x < waterStart);
+            if (crossesWater) dist *= 1.5;
+            return dist;
+        }
+
+        // Assign customers to DCs
+        function assignCustomers() {
+            const activeDCs = dcLocations.filter(dc => dc.active);
+            demandPoints.forEach(point => {
+                let minDist = Infinity;
+                let bestDC = null;
+                activeDCs.forEach(dc => {
+                    const dist = distance(point, dc);
+                    if (dist < minDist) { // Assign to nearest DC regardless of distance to fulfill all demand
+                        minDist = dist;
+                        bestDC = dc;
+                    }
+                });
+                point.assignedDC = bestDC;
+                point.distance = minDist;
+            });
+        }
+
+        // Calculate costs
+        function calculateCosts() {
+            const activeDCs = dcLocations.filter(dc => dc.active);
+            let totalTransport = 0;
+            let totalStorage = 0;
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const storageRate = parseFloat(document.getElementById('storage-rate').value);
+            const dio = parseInt(document.getElementById('dio').value);
+
+            // First mile
+            activeDCs.forEach(dc => {
+                const dist = distance(factory, dc);
+                if (dist > 4000) return; // SLA violation, but for now ignore
+                const throughput = demandPoints.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                totalTransport += dist * throughput * firstMileRate;
+            });
+
+            // Last mile and storage
+            activeDCs.forEach(dc => {
+                const throughput = demandPoints.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const avgInventory = throughput * (dio / 365);
+                totalStorage += avgInventory * storageRate * 12;
+                demandPoints.filter(p => p.assignedDC === dc).forEach(p => {
+                    totalTransport += p.distance * p.demand * lastMileRate;
+                });
+            });
+
+            return {total: totalTransport + totalStorage, transport: totalTransport, storage: totalStorage, activeDCs: activeDCs.length};
+        }
+
+        // Draw map
+        function drawMap() {
+            drawMapOnCanvas(ctx, canvas, dcLocations, demandPoints);
+            drawMapOnCanvas(ctxAnalytics1, canvasAnalytics1, scenario1.dcLocations, scenario1.demandPoints);
+            if (scenario2) {
+                drawMapOnCanvas(ctxAnalytics2, canvasAnalytics2, scenario2.dcLocations, scenario2.demandPoints);
+            }
+        }
+
+        function drawMapOnCanvas(context, canvasElement, dcs, demands) {
+            const rect = canvasElement.getBoundingClientRect();
+            context.clearRect(0, 0, rect.width, 700);
+
+            // Scale factor for canvas (use style width for proper scaling, keep Y at 1:1 with original 800px design scaled to 700px)
+            const scaleX = rect.width / 1000;
+            const scaleY = 700 / 800;
+
+            // Water
+            context.fillStyle = '#B8D4E8';
+            context.fillRect(450 * scaleX, 0, 100 * scaleX, 700);
+            // Land
+            context.fillStyle = '#E8E8E8';
+            context.fillRect(0, 0, 450 * scaleX, 700);
+            context.fillRect(550 * scaleX, 0, 450 * scaleX, 700);
+
+            // Factory
+            context.fillStyle = '#CB333B';
+            context.fillRect(factory.x * scaleX - 10, factory.y * scaleY - 10, 20, 20);
+            context.fillStyle = 'white';
+            context.font = '16px Arial';
+            context.fillText('F', factory.x * scaleX - 5, factory.y * scaleY + 5);
+
+            // DCs
+            dcs.forEach(dc => {
+                if (dc.active) {
+                    context.fillStyle = '#385D7F';
+                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                    const size = Math.max(5, Math.sqrt(throughput) / 2);
+                    context.beginPath();
+                    context.arc(dc.x * scaleX, dc.y * scaleY, size, 0, 2 * Math.PI);
+                    context.fill();
+                    context.fillStyle = 'white';
+                    context.fillText(dc.id, dc.x * scaleX - 10, dc.y * scaleY - 10);
+                } else {
+                    context.strokeStyle = 'gray';
+                    context.setLineDash([5, 5]);
+                    context.beginPath();
+                    context.arc(dc.x * scaleX, dc.y * scaleY, 10, 0, 2 * Math.PI);
+                    context.stroke();
+                    context.setLineDash([]);
+                }
+            });
+
+            // Demand points
+            demands.forEach(point => {
+                const intensity = Math.min(255, point.demand / 4);
+                context.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
+                context.beginPath();
+                context.arc(point.x * scaleX, point.y * scaleY, 3, 0, 2 * Math.PI);
+                context.fill();
+            });
+
+            // Flows
+            const activeDCs = dcs.filter(dc => dc.active);
+            // First mile
+            context.strokeStyle = 'rgba(56, 93, 127, 0.5)';
+            context.lineWidth = 2;
+            activeDCs.forEach(dc => {
+                context.beginPath();
+                context.moveTo(factory.x * scaleX, factory.y * scaleY);
+                context.lineTo(dc.x * scaleX, dc.y * scaleY);
+                context.stroke();
+            });
+            // Last mile
+            context.strokeStyle = 'rgba(254, 80, 0, 0.5)';
+            demands.forEach(point => {
+                if (point.assignedDC) {
+                    context.beginPath();
+                    context.moveTo(point.assignedDC.x * scaleX, point.assignedDC.y * scaleY);
+                    context.lineTo(point.x * scaleX, point.y * scaleY);
+                    context.stroke();
+                }
+            });
+        }
+
+        // Tooltip function
+        function setupTooltip(canvasElement, tooltipElement) {
+            canvasElement.addEventListener('mousemove', (e) => {
+                const rect = canvasElement.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const scaleX = rect.width / 1000;
+                const scaleY = 700 / 800;
+                let hoveredDC = null;
+                dcLocations.forEach(dc => {
+                    const dist = Math.sqrt((x - dc.x * scaleX)**2 + (y - dc.y * scaleY)**2);
+                    if (dist < 15) hoveredDC = dc;
+                });
+                if (hoveredDC) {
+                    const throughput = demandPoints.filter(p => p.assignedDC === hoveredDC).reduce((sum, p) => sum + p.demand, 0);
+                    const storageRate = parseFloat(document.getElementById('storage-rate').value);
+                    const dio = parseInt(document.getElementById('dio').value);
+                    const storageCost = throughput * (dio / 365) * storageRate * 12;
+                    tooltipElement.innerHTML = `${hoveredDC.name}<br>Throughput: ${throughput} pallets<br>Storage Cost: $${storageCost.toLocaleString()}`;
+                    tooltipElement.style.left = e.pageX + 10 + 'px';
+                    tooltipElement.style.top = e.pageY + 10 + 'px';
+                    tooltipElement.style.display = 'block';
+                } else {
+                    tooltipElement.style.display = 'none';
+                }
+            });
+            canvasElement.addEventListener('mouseout', () => {
+                tooltipElement.style.display = 'none';
+            });
+        }
+
+        // Setup tooltips
+        const tooltip = document.getElementById('tooltip');
+        const tooltipAnalytics1 = document.getElementById('tooltip-analytics-1');
+        const tooltipAnalytics2 = document.getElementById('tooltip-analytics-2');
+        setupTooltip(canvas, tooltip);
+        setupTooltip(canvasAnalytics1, tooltipAnalytics1);
+        setupTooltip(canvasAnalytics2, tooltipAnalytics2);
+
+        // Optimization function
+        function optimize() {
+            // Heuristic optimization
+            // Step 1: Activate all feasible DCs (distance from factory <= 4000 km)
+            dcLocations.forEach(dc => {
+                dc.active = distance(factory, dc) <= 4000;
+            });
+            assignCustomers();
+            
+            // Step 2: Local search - try closing DCs that don't reduce total cost
+            let improved = true;
+            let iterations = 0;
+            while (improved && iterations < 10) { // Limit iterations
+                improved = false;
+                iterations++;
+                const currentCosts = calculateCosts();
+                for (let i = 0; i < dcLocations.length; i++) {
+                    if (!dcLocations[i].active) continue;
+                    // Try closing this DC
+                    dcLocations[i].active = false;
+                    assignCustomers();
+                    const trialCosts = calculateCosts();
+                    if (trialCosts.total < currentCosts.total) {
+                        // Keep closed
+                        improved = true;
+                        break; // Accept first improvement
+                    } else {
+                        // Reopen
+                        dcLocations[i].active = true;
+                    }
+                }
+            }
+            assignCustomers();
+        }
+
+        // Update results
+        let comparisonScenario = null;
+
+        // Helper function to generate metrics HTML
+        function generateMetricsHTML(dcs, demands, scenarioName) {
+            // Calculate costs for this scenario
+            const activeDCs = dcs.filter(dc => dc.active);
+            let totalTransport = 0;
+            let totalStorage = 0;
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const storageRate = parseFloat(document.getElementById('storage-rate').value);
+            const dio = parseInt(document.getElementById('dio').value);
+
+            // First mile
+            activeDCs.forEach(dc => {
+                const dist = distance(factory, dc);
+                const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                totalTransport += dist * throughput * firstMileRate * 12;
+            });
+
+            // Last mile & storage
+            demands.forEach(point => {
+                if (point.assignedDC) {
+                    totalTransport += point.distance * point.demand * lastMileRate * 12;
+                }
+            });
+
+            activeDCs.forEach(dc => {
+                const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                totalStorage += throughput * (dio / 365) * storageRate * 12;
+            });
+
+            const costs = {
+                total: totalTransport + totalStorage,
+                transport: totalTransport,
+                storage: totalStorage,
+                activeDCs: activeDCs.length
+            };
+
+            // Calculate total demand (monthly)
+            const totalDemand = demands.reduce((sum, p) => sum + p.demand, 0);
+
+            // FMCG Product Structure:
+            // 1 pallet = 60 cartons × 50 pieces = 3,000 pieces
+            // NSV per piece = $5
+            // NSV per pallet = 3,000 × $5 = $15,000
+            const nsvPerPallet = 15000;
+            // NSV is annual (monthly demand × 12 months)
+            const nsv = totalDemand * 12 * nsvPerPallet;
+            const costPerNSV = costs.total / nsv;
+
+            // Calculate unit cost to serve
+            const unitCostToServe = costs.total / totalDemand;
+
+            // Calculate lead time as simple average of lead time to all customers (distance / 500 km/day)
+            const avgLeadTime = demands.reduce((sum, p) => sum + ((p.distance || 0) / 500), 0) / demands.length;
+
+            // Calculate total stock: sum for each DC of (DIO * annual output quantity)/365
+            // Annual output = monthly demand * 12
+            let totalStock = 0;
+            activeDCs.forEach(dc => {
+                const monthlyThroughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const annualThroughput = monthlyThroughput * 12;
+                totalStock += (dio * annualThroughput) / 365;
+            });
+
+            // Calculate DIO - should equal the input DIO parameter
+            const calculatedDIO = dio;
+
+            // Calculate IOC: average inventory value * WACC (10%)
+            // Average inventory value = total stock (pallets) * NSV per pallet
+            const avgInventoryValue = totalStock * nsvPerPallet;
+            const ioc = avgInventoryValue * 0.10;
+
+            return `
+                <div class="metric-card">
+                    <div class="metric-label">Number DCs</div>
+                    <div class="metric-sublabel">-</div>
+                    <div class="metric-value">${costs.activeDCs}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Cost per NSV</div>
+                    <div class="metric-sublabel">Ratio</div>
+                    <div class="metric-value">${(costPerNSV * 100).toFixed(2)}%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Net Sales Value</div>
+                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-value">${(nsv / 1000000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Net Sales</div>
+                    <div class="metric-sublabel">Volume</div>
+                    <div class="metric-value">${(totalDemand / 1000).toFixed(0)}</div>
+                    <div class="metric-sublabel" style="margin-top:5px">(k Pallets)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Cost-to-Serve</div>
+                    <div class="metric-sublabel">(k USD)</div>
+                    <div class="metric-value">${(costs.total / 1000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Unit Cost-to-</div>
+                    <div class="metric-sublabel">Serve</div>
+                    <div class="metric-value">${unitCostToServe.toFixed(2)}</div>
+                    <div class="metric-sublabel" style="margin-top:5px">(USD/Pallet)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">IOC</div>
+                    <div class="metric-sublabel">(k USD)</div>
+                    <div class="metric-value">${(ioc / 1000).toFixed(0)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">DIO</div>
+                    <div class="metric-sublabel">(days)</div>
+                    <div class="metric-value">${calculatedDIO.toFixed(0)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Lead Time</div>
+                    <div class="metric-sublabel">(days)</div>
+                    <div class="metric-value">${avgLeadTime.toFixed(2)}</div>
+                </div>
+            `;
+        }
+
+        function updateResults() {
+            const costs = calculateCosts();
+
+            // Update scenario 1
+            document.getElementById('scenario-label-1').textContent = scenario1.name;
+            document.getElementById('metrics-grid-1').innerHTML = generateMetricsHTML(
+                scenario1.dcLocations,
+                scenario1.demandPoints,
+                scenario1.name
+            );
+
+            // Update scenario 2 if exists
+            if (scenario2) {
+                document.getElementById('scenario-2-section').style.display = 'block';
+                document.getElementById('map-container-analytics-2').style.display = 'block';
+                document.getElementById('map-comparison-container').classList.add('two-scenarios');
+                document.getElementById('scenario-label-2').textContent = scenario2.name;
+                document.getElementById('metrics-grid-2').innerHTML = generateMetricsHTML(
+                    scenario2.dcLocations,
+                    scenario2.demandPoints,
+                    scenario2.name
+                );
+
+                // Resize canvases after making them visible
+                setTimeout(() => {
+                    resizeCanvas(canvasAnalytics2);
+                    drawMap();
+                }, 50);
+            } else {
+                document.getElementById('scenario-2-section').style.display = 'none';
+                document.getElementById('map-container-analytics-2').style.display = 'none';
+                document.getElementById('map-comparison-container').classList.remove('two-scenarios');
+            }
+
+            // Update charts
+            updateCharts(costs);
+        }
+
+        // Draw charts
+        function updateCharts(costs) {
+            // Sample data for waterfall chart effect
+            const firstMileCost = costs.transport * 0.52; // Estimate
+            const storageCost = costs.storage;
+            const lastMileCost = costs.transport * 0.48;
+
+            // Absolute chart
+            const absoluteCanvas = document.getElementById('absolute-chart');
+            const absCtx = absoluteCanvas.getContext('2d');
+            absCtx.clearRect(0, 0, absoluteCanvas.width, absoluteCanvas.height);
+
+            // Draw bars for absolute cost
+            const maxCost = costs.total;
+            const barWidth = 80;
+            const spacing = 50;
+            const chartHeight = 250;
+            const baseY = 270;
+
+            // First mile
+            const fm_height = (firstMileCost / maxCost) * chartHeight;
+            absCtx.fillStyle = '#385D7F';
+            absCtx.fillRect(50, baseY - fm_height, barWidth, fm_height);
+            absCtx.fillStyle = '#2D3748';
+            absCtx.font = '14px Arial';
+            absCtx.textAlign = 'center';
+            absCtx.fillText(Math.round(firstMileCost / 1000) + 'M', 90, baseY - fm_height - 5);
+
+            // Storage (stacked on first mile)
+            const st_height = (storageCost / maxCost) * chartHeight;
+            absCtx.fillStyle = '#385D7F';
+            absCtx.fillRect(50 + barWidth + spacing, baseY - fm_height - st_height, barWidth, fm_height + st_height);
+            absCtx.fillText(Math.round((firstMileCost + storageCost) / 1000) + 'M', 90 + barWidth + spacing, baseY - fm_height - st_height - 5);
+
+            // Last mile (stacked on storage)
+            const lm_height = (lastMileCost / maxCost) * chartHeight;
+            absCtx.fillStyle = '#385D7F';
+            absCtx.fillRect(50 + (barWidth + spacing) * 2, baseY - costs.total / maxCost * chartHeight, barWidth, costs.total / maxCost * chartHeight);
+            absCtx.fillText(Math.round(costs.total / 1000) + 'M', 90 + (barWidth + spacing) * 2, baseY - costs.total / maxCost * chartHeight - 5);
+
+            // Relative chart (cost per pallet)
+            const relativeCanvas = document.getElementById('relative-chart');
+            const relCtx = relativeCanvas.getContext('2d');
+            relCtx.clearRect(0, 0, relativeCanvas.width, relativeCanvas.height);
+
+            const totalDemand = demandPoints.reduce((sum, p) => sum + p.demand, 0);
+            const fm_per_pallet = firstMileCost / totalDemand;
+            const st_per_pallet = storageCost / totalDemand;
+            const lm_per_pallet = lastMileCost / totalDemand;
+            const total_per_pallet = costs.total / totalDemand;
+
+            const maxPerPallet = total_per_pallet;
+
+            // First mile
+            const fm_height_rel = (fm_per_pallet / maxPerPallet) * chartHeight;
+            relCtx.fillStyle = '#385D7F';
+            relCtx.fillRect(50, baseY - fm_height_rel, barWidth, fm_height_rel);
+            relCtx.fillStyle = '#2D3748';
+            relCtx.font = '14px Arial';
+            relCtx.textAlign = 'center';
+            relCtx.fillText(Math.round(fm_per_pallet), 90, baseY - fm_height_rel - 5);
+
+            // Storage (stacked)
+            const st_height_rel = (st_per_pallet / maxPerPallet) * chartHeight;
+            relCtx.fillStyle = '#385D7F';
+            relCtx.fillRect(50 + barWidth + spacing, baseY - fm_height_rel - st_height_rel, barWidth, fm_height_rel + st_height_rel);
+            relCtx.fillText(Math.round(fm_per_pallet + st_per_pallet), 90 + barWidth + spacing, baseY - fm_height_rel - st_height_rel - 5);
+
+            // Last mile (stacked)
+            const total_height_rel = (total_per_pallet / maxPerPallet) * chartHeight;
+            relCtx.fillStyle = '#385D7F';
+            relCtx.fillRect(50 + (barWidth + spacing) * 2, baseY - total_height_rel, barWidth, total_height_rel);
+            relCtx.fillText(Math.round(total_per_pallet), 90 + (barWidth + spacing) * 2, baseY - total_height_rel - 5);
+        }
+
+        // Initialize
+        generateDemandPoints();
+        assignCustomers();
+
+        // Initialize scenario 1 with current state
+        scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
+        scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
+
+        drawMap();
+        updateResults();
+
+        // Load saved scenarios into all dropdowns
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('dno-scenario-')) {
+                const name = key.replace('dno-scenario-', '');
+                ['scenario-select-1', 'scenario-select-2', 'scenario-select-3'].forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = name;
+                        select.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        // DC list
+        const dcList = document.getElementById('dc-list');
+        dcLocations.forEach(dc => {
+            const div = document.createElement('div');
+            div.className = 'dc-checkbox';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = dc.id;
+            checkbox.checked = dc.active;
+            checkbox.addEventListener('change', () => {
+                dc.active = checkbox.checked;
+                assignCustomers();
+                drawMap();
+                updateResults();
+            });
+            const label = document.createElement('label');
+            label.htmlFor = dc.id;
+            label.textContent = dc.name;
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            dcList.appendChild(div);
+        });
+
+        // Parameters
+        ['first-mile-rate', 'last-mile-rate', 'storage-rate', 'dio'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                updateResults();
+            });
+        });
+
+        // Run optimization
+        document.getElementById('run-optimization').addEventListener('click', () => {
+            optimize();
+            // Update checkboxes
+            dcLocations.forEach(dc => {
+                document.getElementById(dc.id).checked = dc.active;
+            });
+            drawMap();
+            updateResults();
+        });
+
+        // Save scenario
+        document.getElementById('save-scenario').addEventListener('click', () => {
+            const name = prompt('Enter scenario name:');
+            if (name) {
+                const scenario = {
+                    name,
+                    dcActive: dcLocations.map(dc => dc.active),
+                    parameters: {
+                        firstMileRate: document.getElementById('first-mile-rate').value,
+                        lastMileRate: document.getElementById('last-mile-rate').value,
+                        storageRate: document.getElementById('storage-rate').value,
+                        dio: document.getElementById('dio').value
+                    },
+                    demands: demandPoints.map(p => ({cluster: p.cluster, demand: p.demand}))
+                };
+                localStorage.setItem('dno-scenario-' + name, JSON.stringify(scenario));
+                alert('Scenario saved!');
+            }
+        });
+
+        // Helper function to load a scenario
+        function loadScenario(scenarioValue, scenarioName) {
+            const tempDcLocations = JSON.parse(JSON.stringify(dcLocations));
+            const tempDemandPoints = JSON.parse(JSON.stringify(demandPoints));
+
+            if (scenarioValue === 'baseline') {
+                tempDcLocations.forEach((dc, i) => dc.active = [0,2,4,6,8].includes(i));
+            } else if (scenarioValue === 'optimized') {
+                // Apply optimization to temp data
+                tempDcLocations.forEach(dc => {
+                    dc.active = distance(factory, dc) <= 4000;
+                });
+
+                // Assign customers with temp data
+                const activeDCs = tempDcLocations.filter(dc => dc.active);
+                tempDemandPoints.forEach(point => {
+                    let minDist = Infinity;
+                    let bestDC = null;
+                    activeDCs.forEach(dc => {
+                        const dist = distance(point, dc);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestDC = dc;
+                        }
+                    });
+                    point.assignedDC = bestDC;
+                    point.distance = minDist;
+                });
+
+                // Greedy optimization
+                let improved = true;
+                let iterations = 0;
+                while (improved && iterations < 10) {
+                    improved = false;
+                    iterations++;
+                    const activeDCs = tempDcLocations.filter(dc => dc.active);
+                    for (let i = 0; i < tempDcLocations.length; i++) {
+                        if (!tempDcLocations[i].active) continue;
+                        tempDcLocations[i].active = false;
+
+                        // Re-assign
+                        const newActiveDCs = tempDcLocations.filter(dc => dc.active);
+                        tempDemandPoints.forEach(point => {
+                            let minDist = Infinity;
+                            let bestDC = null;
+                            newActiveDCs.forEach(dc => {
+                                const dist = distance(point, dc);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    bestDC = dc;
+                                }
+                            });
+                            point.assignedDC = bestDC;
+                            point.distance = minDist;
+                        });
+
+                        // Check if this is better - simplified cost check
+                        const allAssigned = tempDemandPoints.every(p => p.assignedDC !== null);
+                        if (!allAssigned) {
+                            tempDcLocations[i].active = true;
+                        } else {
+                            improved = true;
+                            break;
+                        }
+                    }
+                }
+
+                // Final assignment
+                const finalActiveDCs = tempDcLocations.filter(dc => dc.active);
+                tempDemandPoints.forEach(point => {
+                    let minDist = Infinity;
+                    let bestDC = null;
+                    finalActiveDCs.forEach(dc => {
+                        const dist = distance(point, dc);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestDC = dc;
+                        }
+                    });
+                    point.assignedDC = bestDC;
+                    point.distance = minDist;
+                });
+            } else {
+                // Load saved scenario
+                const savedScenario = JSON.parse(localStorage.getItem('dno-scenario-' + scenarioValue));
+                if (savedScenario) {
+                    tempDcLocations.forEach((dc, i) => dc.active = savedScenario.dcActive[i]);
+                    savedScenario.demands.forEach((d, i) => {
+                        if (tempDemandPoints[i]) tempDemandPoints[i].demand = d.demand;
+                    });
+                }
+            }
+
+            // Assign customers for temp data
+            const activeDCs = tempDcLocations.filter(dc => dc.active);
+            tempDemandPoints.forEach(point => {
+                let minDist = Infinity;
+                let bestDC = null;
+                activeDCs.forEach(dc => {
+                    const dist = distance(point, dc);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestDC = dc;
+                    }
+                });
+                point.assignedDC = bestDC;
+                point.distance = minDist;
+            });
+
+            return {
+                demandPoints: tempDemandPoints,
+                dcLocations: tempDcLocations,
+                name: scenarioName
+            };
+        }
+
+        // Scenario select handlers
+        const select1 = document.getElementById('scenario-select-1');
+        const select2 = document.getElementById('scenario-select-2');
+
+        select1.addEventListener('change', (e) => {
+            if (e.target.value === '') return;
+            const scenarioName = select1.options[select1.selectedIndex].text;
+            scenario1 = loadScenario(e.target.value, scenarioName);
+
+            // Update current working state
+            dcLocations = JSON.parse(JSON.stringify(scenario1.dcLocations));
+            demandPoints = JSON.parse(JSON.stringify(scenario1.demandPoints));
+
+            // Update DC checkboxes
+            dcLocations.forEach(dc => {
+                const checkbox = document.getElementById(dc.id);
+                if (checkbox) checkbox.checked = dc.active;
+            });
+
+            drawMap();
+            updateResults();
+        });
+
+        select2.addEventListener('change', (e) => {
+            if (e.target.value === '') {
+                scenario2 = null;
+            } else {
+                const scenarioName = select2.options[select2.selectedIndex].text;
+                scenario2 = loadScenario(e.target.value, scenarioName);
+            }
+
+            drawMap();
+            updateResults();
+        });
+    </script>
+</body>
+</html>
