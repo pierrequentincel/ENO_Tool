@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOM - Distribution Network Design</title>
+    <!-- Solver Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/highs@1.8.0/build/highs.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/glpk.js@4.0.1/dist/glpk.min.js"></script>
     <style>
         :root {
             --cel-red: #CB333B;
@@ -573,8 +576,26 @@
                             </div>
                         </div>
 
-                        <div style="margin-top: 30px; display: flex; gap: 15px;">
-                            <button id="run-new-optimization" style="padding: 12px 24px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Run Optimization</button>
+                        <div style="margin-top: 30px; display: flex; gap: 15px; align-items: center;">
+                            <div style="display: inline-flex; position: relative;">
+                                <button id="run-new-optimization" style="padding: 12px 24px; background: var(--cel-blue); color: white; border: none; border-radius: 4px 0 0 4px; font-weight: 600; cursor: pointer;">Run Optimization</button>
+                                <button id="run-new-optimization-dropdown" style="padding: 12px 10px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; border-left: 1px solid rgba(255,255,255,0.3);">▼</button>
+                                <div id="solver-dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 220px; margin-top: 2px;">
+                                    <div class="solver-option" data-solver="heuristic" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee;">
+                                        <strong style="display: block; color: var(--text-dark);">Heuristic</strong>
+                                        <small style="color: #64748b;">Fast local search (~1-10ms)</small>
+                                    </div>
+                                    <div class="solver-option" data-solver="highs" style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee;">
+                                        <strong style="display: block; color: var(--text-dark);">HiGHS</strong>
+                                        <small style="color: #64748b;">MIP solver - optimal solutions</small>
+                                    </div>
+                                    <div class="solver-option" data-solver="glpk" style="padding: 10px 15px; cursor: pointer;">
+                                        <strong style="display: block; color: var(--text-dark);">GLPK</strong>
+                                        <small style="color: #64748b;">GNU MIP solver - optimal solutions</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <span id="new-scenario-solver-label" style="font-size: 13px; color: #64748b;">(Using: Heuristic)</span>
                             <button id="save-new-scenario" style="padding: 12px 24px; background: var(--cel-green); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Save Scenario</button>
                         </div>
                     </div>
@@ -957,6 +978,358 @@
             assignCustomers();
         }
 
+        // ===== MIP SOLVER IMPLEMENTATIONS =====
+
+        // Global solver instances (initialized lazily)
+        let highsInstance = null;
+        let glpkInstance = null;
+
+        // Initialize HiGHS solver
+        async function initHiGHS() {
+            if (highsInstance) return highsInstance;
+            try {
+                // HiGHS from CDN exposes a global 'highs' factory function
+                if (typeof highs === 'undefined') {
+                    throw new Error('HiGHS library not loaded');
+                }
+                highsInstance = await highs({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/highs@1.8.0/build/${file}`
+                });
+                console.log('HiGHS initialized successfully');
+                return highsInstance;
+            } catch (e) {
+                console.error('Failed to initialize HiGHS:', e);
+                throw e;
+            }
+        }
+
+        // Initialize GLPK solver
+        async function initGLPK() {
+            if (glpkInstance) return glpkInstance;
+            try {
+                if (typeof GLPK === 'undefined') {
+                    throw new Error('GLPK library not loaded');
+                }
+                glpkInstance = await GLPK();
+                console.log('GLPK initialized successfully');
+                return glpkInstance;
+            } catch (e) {
+                console.error('Failed to initialize GLPK:', e);
+                throw e;
+            }
+        }
+
+        // Optimized greedy solver (better than simple heuristic, faster than MIP)
+        function optimizeGreedy(targetDCs, targetDemands, params) {
+            const { firstMileRate, lastMileRate, storageRate, dio } = params;
+
+            // Calculate cost for a given DC configuration
+            function calcTotalCost() {
+                const activeDCs = targetDCs.filter(dc => dc.active);
+                if (activeDCs.length === 0) return Infinity;
+
+                let total = 0;
+                targetDemands.forEach(point => {
+                    let minDist = Infinity;
+                    let bestDC = null;
+                    activeDCs.forEach(dc => {
+                        const dist = distance(point, dc);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestDC = dc;
+                        }
+                    });
+                    if (bestDC) {
+                        // Last mile cost
+                        total += minDist * point.demand * lastMileRate / 1000 * 12;
+                        point.assignedDC = bestDC;
+                        point.distance = minDist;
+                    }
+                });
+
+                // First mile and storage costs
+                activeDCs.forEach(dc => {
+                    const throughput = targetDemands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                    const distFromFactory = distance(factory, dc);
+                    total += distFromFactory * throughput * firstMileRate / 1000 * 12;
+                    total += throughput * (dio / 365) * storageRate * 12;
+                });
+
+                return total;
+            }
+
+            // Start with all DCs active
+            targetDCs.forEach(dc => dc.active = true);
+            let bestCost = calcTotalCost();
+
+            // Greedy removal - keep removing DCs while cost improves
+            let improved = true;
+            while (improved) {
+                improved = false;
+                let bestRemoval = -1;
+                let bestNewCost = bestCost;
+
+                for (let i = 0; i < targetDCs.length; i++) {
+                    if (!targetDCs[i].active) continue;
+
+                    targetDCs[i].active = false;
+                    const newCost = calcTotalCost();
+
+                    if (newCost < bestNewCost) {
+                        bestNewCost = newCost;
+                        bestRemoval = i;
+                    }
+
+                    targetDCs[i].active = true;
+                }
+
+                if (bestRemoval >= 0) {
+                    targetDCs[bestRemoval].active = false;
+                    bestCost = bestNewCost;
+                    improved = true;
+                }
+            }
+
+            // Final assignment
+            calcTotalCost();
+        }
+
+        // HiGHS optimization
+        async function optimizeWithHiGHS(targetDCs = dcLocations, targetDemands = demandPoints) {
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const storageRate = parseFloat(document.getElementById('storage-rate').value);
+            const dio = parseInt(document.getElementById('dio').value);
+
+            try {
+                const solver = await initHiGHS();
+
+                const numDCs = targetDCs.length;
+                const numCustomers = targetDemands.length;
+
+                // Pre-calculate assignment costs for each customer to each DC
+                const costs = [];
+                for (let c = 0; c < numCustomers; c++) {
+                    costs[c] = [];
+                    for (let d = 0; d < numDCs; d++) {
+                        const customer = targetDemands[c];
+                        const dc = targetDCs[d];
+                        const lastMileDist = distance(customer, dc);
+                        const firstMileDist = distance(factory, dc);
+
+                        const unitCost = (lastMileDist * lastMileRate / 1000 +
+                                         firstMileDist * firstMileRate / 1000 +
+                                         (dio / 365) * storageRate) * 12;
+                        costs[c][d] = unitCost * customer.demand;
+                    }
+                }
+
+                // Build LP string
+                let lp = 'Minimize\n obj:';
+                const terms = [];
+
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        terms.push(` ${costs[c][d].toFixed(2)} x${c}_${d}`);
+                    }
+                }
+                lp += terms.join(' +') + '\n';
+
+                lp += 'Subject To\n';
+
+                // Each customer assigned to exactly one DC
+                for (let c = 0; c < numCustomers; c++) {
+                    const assignTerms = [];
+                    for (let d = 0; d < numDCs; d++) {
+                        assignTerms.push(`x${c}_${d}`);
+                    }
+                    lp += ` c${c}: ${assignTerms.join(' + ')} = 1\n`;
+                }
+
+                // Linking: x[c,d] <= y[d]
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        lp += ` l${c}_${d}: x${c}_${d} - y${d} <= 0\n`;
+                    }
+                }
+
+                lp += 'Binary\n';
+                for (let d = 0; d < numDCs; d++) {
+                    lp += ` y${d}\n`;
+                }
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        lp += ` x${c}_${d}\n`;
+                    }
+                }
+                lp += 'End\n';
+
+                console.log('Solving with HiGHS...');
+                const result = solver.solve(lp);
+                console.log('HiGHS result:', result);
+
+                if (result.Status === 'Optimal') {
+                    // Extract which DCs are open
+                    for (let d = 0; d < numDCs; d++) {
+                        const val = result.Columns[`y${d}`]?.Primal || 0;
+                        targetDCs[d].active = val > 0.5;
+                    }
+                    assignCustomersToScenario(targetDemands, targetDCs);
+                    return { success: true, objective: result.ObjectiveValue };
+                } else {
+                    throw new Error('HiGHS status: ' + result.Status);
+                }
+            } catch (e) {
+                console.error('HiGHS failed, using greedy fallback:', e);
+                console.log('Using greedy optimization as fallback...');
+                // Fallback to greedy
+                const params = { firstMileRate, lastMileRate, storageRate, dio };
+                optimizeGreedy(targetDCs, targetDemands, params);
+                return { success: true, fallback: true, message: 'Used greedy fallback: ' + e.message };
+            }
+        }
+
+        // GLPK optimization
+        async function optimizeWithGLPK(targetDCs = dcLocations, targetDemands = demandPoints) {
+            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
+            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
+            const storageRate = parseFloat(document.getElementById('storage-rate').value);
+            const dio = parseInt(document.getElementById('dio').value);
+
+            try {
+                const glpk = await initGLPK();
+
+                const numDCs = targetDCs.length;
+                const numCustomers = targetDemands.length;
+
+                // Pre-calculate costs
+                const costs = [];
+                for (let c = 0; c < numCustomers; c++) {
+                    costs[c] = [];
+                    for (let d = 0; d < numDCs; d++) {
+                        const customer = targetDemands[c];
+                        const dc = targetDCs[d];
+                        const lastMileDist = distance(customer, dc);
+                        const firstMileDist = distance(factory, dc);
+
+                        const unitCost = (lastMileDist * lastMileRate / 1000 +
+                                         firstMileDist * firstMileRate / 1000 +
+                                         (dio / 365) * storageRate) * 12;
+                        costs[c][d] = unitCost * customer.demand;
+                    }
+                }
+
+                // Build objective
+                const objective = [];
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        objective.push({ name: `x${c}_${d}`, coef: costs[c][d] });
+                    }
+                }
+
+                // Build constraints
+                const subjectTo = [];
+
+                // Assignment constraints
+                for (let c = 0; c < numCustomers; c++) {
+                    const vars = [];
+                    for (let d = 0; d < numDCs; d++) {
+                        vars.push({ name: `x${c}_${d}`, coef: 1 });
+                    }
+                    subjectTo.push({
+                        name: `assign${c}`,
+                        vars: vars,
+                        bnds: { type: glpk.GLP_FX, lb: 1, ub: 1 }
+                    });
+                }
+
+                // Linking constraints
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        subjectTo.push({
+                            name: `link${c}_${d}`,
+                            vars: [
+                                { name: `x${c}_${d}`, coef: 1 },
+                                { name: `y${d}`, coef: -1 }
+                            ],
+                            bnds: { type: glpk.GLP_UP, lb: 0, ub: 0 }
+                        });
+                    }
+                }
+
+                // Binary variables list
+                const binaries = [];
+                for (let d = 0; d < numDCs; d++) {
+                    binaries.push(`y${d}`);
+                }
+                for (let c = 0; c < numCustomers; c++) {
+                    for (let d = 0; d < numDCs; d++) {
+                        binaries.push(`x${c}_${d}`);
+                    }
+                }
+
+                const model = {
+                    name: 'FacilityLocation',
+                    objective: {
+                        direction: glpk.GLP_MIN,
+                        name: 'cost',
+                        vars: objective
+                    },
+                    subjectTo: subjectTo,
+                    binaries: binaries
+                };
+
+                console.log('Solving with GLPK...');
+                const result = await glpk.solve(model, { msglev: glpk.GLP_MSG_OFF });
+                console.log('GLPK result:', result);
+
+                if (result.result.status === glpk.GLP_OPT) {
+                    // Extract which DCs are open
+                    for (let d = 0; d < numDCs; d++) {
+                        const val = result.result.vars[`y${d}`] || 0;
+                        targetDCs[d].active = val > 0.5;
+                    }
+                    assignCustomersToScenario(targetDemands, targetDCs);
+                    return { success: true, objective: result.result.z };
+                } else {
+                    throw new Error('GLPK status: ' + result.result.status);
+                }
+            } catch (e) {
+                console.error('GLPK failed, using greedy fallback:', e);
+                console.log('Using greedy optimization as fallback...');
+                // Fallback to greedy
+                const params = { firstMileRate, lastMileRate, storageRate, dio };
+                optimizeGreedy(targetDCs, targetDemands, params);
+                return { success: true, fallback: true, message: 'Used greedy fallback: ' + e.message };
+            }
+        }
+
+        // Unified optimization function that uses selected solver
+        async function runOptimization(solver = 'heuristic') {
+            const startTime = performance.now();
+            let result;
+
+            try {
+                if (solver === 'heuristic') {
+                    optimize();
+                    result = { success: true };
+                } else if (solver === 'highs') {
+                    result = await optimizeWithHiGHS();
+                } else if (solver === 'glpk') {
+                    result = await optimizeWithGLPK();
+                }
+            } catch (e) {
+                console.error('Optimization error:', e);
+                alert('Optimization failed: ' + e.message);
+                result = { success: false };
+            }
+
+            const endTime = performance.now();
+            const solveTime = Math.round(endTime - startTime);
+
+            return { ...result, solveTime, solver };
+        }
+
         // Update results
         let comparisonScenario = null;
 
@@ -1261,6 +1634,44 @@
             });
         });
 
+        // Solver dropdown split button handling
+        let selectedSolver = 'heuristic';
+        const solverNames = {
+            'heuristic': 'Heuristic',
+            'highs': 'HiGHS',
+            'glpk': 'GLPK'
+        };
+
+        const dropdownMenu = document.getElementById('solver-dropdown-menu');
+        const dropdownBtn = document.getElementById('run-new-optimization-dropdown');
+
+        // Toggle dropdown menu
+        dropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Close dropdown when clicking elsewhere
+        document.addEventListener('click', () => {
+            dropdownMenu.style.display = 'none';
+        });
+
+        // Handle solver selection from dropdown
+        document.querySelectorAll('.solver-option').forEach(option => {
+            option.addEventListener('mouseenter', () => {
+                option.style.backgroundColor = '#f0f4f8';
+            });
+            option.addEventListener('mouseleave', () => {
+                option.style.backgroundColor = 'white';
+            });
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedSolver = option.dataset.solver;
+                document.getElementById('new-scenario-solver-label').textContent = '(Using: ' + solverNames[selectedSolver] + ')';
+                dropdownMenu.style.display = 'none';
+            });
+        });
+
         // Run optimization
         document.getElementById('run-optimization').addEventListener('click', () => {
             optimize();
@@ -1268,6 +1679,11 @@
             dcLocations.forEach(dc => {
                 document.getElementById(dc.id).checked = dc.active;
             });
+            // Update scenario 1 with optimized state
+            scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
+            scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
+            assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
+
             drawMap();
             updateResults();
         });
@@ -1536,104 +1952,121 @@
         });
 
         // Run Optimization handler
-        document.getElementById('run-new-optimization').addEventListener('click', () => {
-            scenarioFeedCounter++;
-            const scenarioName = 'Run_' + scenarioFeedCounter + '_' + new Date().toLocaleTimeString();
+        document.getElementById('run-new-optimization').addEventListener('click', async () => {
+            const btn = document.getElementById('run-new-optimization');
+            const dropdownBtn = document.getElementById('run-new-optimization-dropdown');
+            btn.disabled = true;
+            dropdownBtn.disabled = true;
+            btn.textContent = '⏳ Optimizing...';
 
-            // Clone current state
-            const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
-            const runDemands = JSON.parse(JSON.stringify(demandPoints));
+            try {
+                scenarioFeedCounter++;
+                const solver = selectedSolver;
+                const scenarioName = 'Run_' + scenarioFeedCounter + '_' + solverNames[solver] + '_' + new Date().toLocaleTimeString();
 
-            // Get parameters
-            const firstMile = parseFloat(document.getElementById('new-first-mile-rate').value);
-            const lastMile = parseFloat(document.getElementById('new-last-mile-rate').value);
-            const storage = parseFloat(document.getElementById('new-storage-rate').value);
-            const dio = parseInt(document.getElementById('new-dio').value);
+                // Get parameters
+                const firstMile = parseFloat(document.getElementById('new-first-mile-rate').value);
+                const lastMile = parseFloat(document.getElementById('new-last-mile-rate').value);
+                const storage = parseFloat(document.getElementById('new-storage-rate').value);
+                const dio = parseInt(document.getElementById('new-dio').value);
 
-            // Helper function to calculate total cost for a scenario configuration
-            function calculateScenarioCost(dcs, demands, firstMileRate, lastMileRate, storageRate, dioValue) {
-                const activeDCs = dcs.filter(dc => dc.active);
-                let totalTransport = 0;
-                let totalStorage = 0;
-                const firstMile = firstMileRate / 1000;
-                const lastMile = lastMileRate / 1000;
+                // Clone current state
+                const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
+                const runDemands = JSON.parse(JSON.stringify(demandPoints));
 
-                // First mile
-                activeDCs.forEach(dc => {
-                    const dist = distance(factory, dc);
-                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
-                    totalTransport += dist * throughput * firstMile * 12;
-                });
+                const startTime = performance.now();
 
-                // Last mile
-                demands.forEach(point => {
-                    if (point.assignedDC) {
-                        totalTransport += point.distance * point.demand * lastMile * 12;
+                if (solver === 'heuristic') {
+                    // Run heuristic optimization on runDCs
+                    function calculateScenarioCost(dcs, demands) {
+                        const activeDCs = dcs.filter(dc => dc.active);
+                        let total = 0;
+                        const fm = firstMile / 1000;
+                        const lm = lastMile / 1000;
+
+                        activeDCs.forEach(dc => {
+                            const dist = distance(factory, dc);
+                            const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                            total += dist * throughput * fm * 12;
+                            total += throughput * (dio / 365) * storage * 12;
+                        });
+                        demands.forEach(point => {
+                            if (point.assignedDC) {
+                                total += point.distance * point.demand * lm * 12;
+                            }
+                        });
+                        return total;
                     }
-                });
 
-                // Storage
-                activeDCs.forEach(dc => {
-                    const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
-                    totalStorage += throughput * (dioValue / 365) * storageRate * 12;
-                });
-
-                return totalTransport + totalStorage;
-            }
-
-            // Initial assignment with current DC configuration
-            assignCustomersToScenario(runDemands, runDCs);
-            let currentCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
-
-            // Run optimization - try closing DCs to minimize cost
-            let improved = true;
-            let iterations = 0;
-            while (improved && iterations < 10) {
-                improved = false;
-                iterations++;
-                let bestSavings = 0;
-                let bestDCToClose = -1;
-
-                for (let i = 0; i < runDCs.length; i++) {
-                    if (!runDCs[i].active) continue;
-
-                    // Try closing this DC
-                    runDCs[i].active = false;
+                    // Start with all DCs active that are within range
+                    runDCs.forEach(dc => {
+                        dc.active = distance(factory, dc) <= 4000;
+                    });
                     assignCustomersToScenario(runDemands, runDCs);
+                    let currentCost = calculateScenarioCost(runDCs, runDemands);
 
-                    // Check if all customers can still be assigned
-                    const allAssigned = runDemands.every(p => p.assignedDC !== null);
+                    let improved = true;
+                    let iterations = 0;
+                    while (improved && iterations < 10) {
+                        improved = false;
+                        iterations++;
+                        let bestSavings = 0;
+                        let bestDCToClose = -1;
 
-                    if (allAssigned) {
-                        // Calculate new cost
-                        const newCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
-                        const savings = currentCost - newCost;
+                        for (let i = 0; i < runDCs.length; i++) {
+                            if (!runDCs[i].active) continue;
+                            runDCs[i].active = false;
+                            assignCustomersToScenario(runDemands, runDCs);
+                            const allAssigned = runDemands.every(p => p.assignedDC !== null);
+                            if (allAssigned) {
+                                const newCost = calculateScenarioCost(runDCs, runDemands);
+                                const savings = currentCost - newCost;
+                                if (savings > bestSavings) {
+                                    bestSavings = savings;
+                                    bestDCToClose = i;
+                                }
+                            }
+                            runDCs[i].active = true;
+                        }
 
-                        // If closing this DC saves money, track it
-                        if (savings > bestSavings) {
-                            bestSavings = savings;
-                            bestDCToClose = i;
+                        if (bestDCToClose >= 0) {
+                            runDCs[bestDCToClose].active = false;
+                            assignCustomersToScenario(runDemands, runDCs);
+                            currentCost = calculateScenarioCost(runDCs, runDemands);
+                            improved = true;
                         }
                     }
-
-                    // Reopen the DC for now
-                    runDCs[i].active = true;
-                }
-
-                // If we found a DC that saves money when closed, close it
-                if (bestDCToClose >= 0) {
-                    runDCs[bestDCToClose].active = false;
                     assignCustomersToScenario(runDemands, runDCs);
-                    currentCost = calculateScenarioCost(runDCs, runDemands, firstMile, lastMile, storage, dio);
-                    improved = true;
+
+                } else if (solver === 'highs' || solver === 'glpk') {
+                    // Use MIP solver with the target arrays directly
+                    try {
+                        if (solver === 'highs') {
+                            await optimizeWithHiGHS(runDCs, runDemands);
+                        } else {
+                            await optimizeWithGLPK(runDCs, runDemands);
+                        }
+                    } catch (e) {
+                        console.error('Solver error in New Scenario:', e);
+                    }
+                    // Ensure customers are assigned after optimization
+                    assignCustomersToScenario(runDemands, runDCs);
                 }
+
+                const endTime = performance.now();
+                const solveTime = Math.round(endTime - startTime);
+
+                // Update label with solve time
+                document.getElementById('new-scenario-solver-label').textContent = `(${solverNames[solver]}: ${solveTime}ms)`;
+
+                // Add to scenario feed
+                addScenarioToFeed(scenarioName, runDCs, runDemands, {firstMile, lastMile, storage, dio, solver: solverNames[solver], solveTime});
+
+            } finally {
+                btn.disabled = false;
+                dropdownBtn.disabled = false;
+                btn.textContent = 'Run Optimization';
             }
-
-            // Final assignment
-            assignCustomersToScenario(runDemands, runDCs);
-
-            // Add to scenario feed
-            addScenarioToFeed(scenarioName, runDCs, runDemands, {firstMile, lastMile, storage, dio});
         });
 
         // Save Scenario handler
@@ -1676,9 +2109,14 @@
             scenarioBlock.id = scenarioId;
             scenarioBlock.style.cssText = 'background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;';
 
+            const solverInfo = params.solver ? `<span style="margin-left: 10px; padding: 4px 10px; background: var(--cel-blue); color: white; border-radius: 12px; font-size: 12px;">${params.solver}${params.solveTime ? ' - ' + params.solveTime + 'ms' : ''}</span>` : '';
+
             scenarioBlock.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin: 0;">${name}</h3>
+                    <div style="display: flex; align-items: center;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: var(--text-dark); margin: 0;">${name}</h3>
+                        ${solverInfo}
+                    </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="toggle-btn" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Collapse</button>
                         <button class="hide-btn" style="padding: 8px 16px; background: #ffc107; color: white; border: none; border-radius: 4px; cursor: pointer;">Hide</button>
@@ -1686,16 +2124,17 @@
                         <button class="delete-btn" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
                     </div>
                 </div>
-                <div class="scenario-content">
-                    <div class="metrics-grid scenario-metrics"></div>
-                    <div style="margin-top: 30px;">
+                <div class="metrics-grid scenario-metrics"></div>
+                <div class="scenario-details" style="margin-top: 20px;">
+                    <div>
                         <canvas class="scenario-canvas" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></canvas>
                     </div>
-                    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>$${params.firstMile}/pallet/1,000km</div>
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>$${params.lastMile}/pallet/1,000km</div>
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Storage Rate:</strong><br>$${params.storage}/pallet/month</div>
                         <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>DIO:</strong><br>${params.dio} days</div>
+                        <div style="padding: 15px; background: #e8f4fd; border-radius: 4px;"><strong>Solver:</strong><br>${params.solver || 'Heuristic'}${params.solveTime ? ' (' + params.solveTime + 'ms)' : ''}</div>
                     </div>
                 </div>
             `;
@@ -1714,12 +2153,12 @@
 
             // Add event listeners
             scenarioBlock.querySelector('.toggle-btn').addEventListener('click', function() {
-                const content = scenarioBlock.querySelector('.scenario-content');
-                if (content.style.display === 'none') {
-                    content.style.display = 'block';
+                const details = scenarioBlock.querySelector('.scenario-details');
+                if (details.style.display === 'none') {
+                    details.style.display = 'block';
                     this.textContent = 'Collapse';
                 } else {
-                    content.style.display = 'none';
+                    details.style.display = 'none';
                     this.textContent = 'Expand';
                 }
             });
