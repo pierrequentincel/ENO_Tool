@@ -356,7 +356,7 @@
         <!-- Sidebar -->
         <div id="sidebar">
             <div class="logo-section">
-                <img src="ATOM logo.png" alt="ATOM Logo">
+                <img src="pictures/ATOM_logo.png" alt="ATOM Logo">
                 <div class="company-name">Acme Milk Corporate (AMC)</div>
                 <div class="project-name">Distribution Network Design</div>
             </div>
@@ -596,9 +596,6 @@
         });
 
         // JavaScript code here
-        const canvas = document.getElementById('map');
-        const ctx = canvas.getContext('2d');
-
         // Analytics map canvases
         const canvasAnalytics1 = document.getElementById('map-analytics-1');
         const ctxAnalytics1 = canvasAnalytics1.getContext('2d');
@@ -622,7 +619,6 @@
         }
 
         // Initialize canvas sizes
-        resizeCanvas(canvas);
         resizeCanvas(canvasAnalytics1);
         resizeCanvas(canvasAnalytics2);
 
@@ -774,7 +770,6 @@
 
         // Draw map
         function drawMap() {
-            drawMapOnCanvas(ctx, canvas, dcLocations, demandPoints);
             drawMapOnCanvas(ctxAnalytics1, canvasAnalytics1, scenario1.dcLocations, scenario1.demandPoints);
             if (scenario2) {
                 drawMapOnCanvas(ctxAnalytics2, canvasAnalytics2, scenario2.dcLocations, scenario2.demandPoints);
@@ -894,10 +889,8 @@
         }
 
         // Setup tooltips
-        const tooltip = document.getElementById('tooltip');
         const tooltipAnalytics1 = document.getElementById('tooltip-analytics-1');
         const tooltipAnalytics2 = document.getElementById('tooltip-analytics-2');
-        setupTooltip(canvas, tooltip);
         setupTooltip(canvasAnalytics1, tooltipAnalytics1);
         setupTooltip(canvasAnalytics2, tooltipAnalytics2);
 
