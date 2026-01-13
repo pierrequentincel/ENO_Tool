@@ -524,11 +524,14 @@
 
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; margin-bottom: 8px; font-weight: 500;">Preload from scenario:</label>
-                            <select id="preload-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                                <option value="">None</option>
-                                <option value="baseline">0,5_Baseline_2028</option>
-                                <option value="optimized">Optimized</option>
-                            </select>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <select id="preload-scenario-select" style="width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <option value="">None</option>
+                                    <option value="baseline">0,5_Baseline_2028</option>
+                                    <option value="optimized">Optimized</option>
+                                </select>
+                                <button id="reset-to-preloaded" style="display: none; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Reset to preloaded</button>
+                            </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 300px 1fr; gap: 30px;">
@@ -1392,27 +1395,38 @@
 
         // Initialize DC list for new scenario creator
         const newDCList = document.getElementById('new-dc-list');
-        newScenarioDCs.forEach(dc => {
-            const div = document.createElement('div');
-            div.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px; font-size: 13px;';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = 'new-' + dc.id;
-            checkbox.checked = dc.active;
-            checkbox.style.marginRight = '8px';
-            checkbox.addEventListener('change', () => {
-                dc.active = checkbox.checked;
-                assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-                resizeCanvas(newScenarioMapCanvas);
-                drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+
+        // Function to reinitialize DC checkboxes with current newScenarioDCs array
+        function reinitializeNewScenarioCheckboxes() {
+            // Clear existing checkboxes
+            newDCList.innerHTML = '';
+
+            // Create new checkboxes linked to current newScenarioDCs
+            newScenarioDCs.forEach(dc => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px; font-size: 13px;';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'new-' + dc.id;
+                checkbox.checked = dc.active;
+                checkbox.style.marginRight = '8px';
+                checkbox.addEventListener('change', () => {
+                    dc.active = checkbox.checked;
+                    assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+                    resizeCanvas(newScenarioMapCanvas);
+                    drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+                });
+                const label = document.createElement('label');
+                label.htmlFor = 'new-' + dc.id;
+                label.textContent = dc.name;
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                newDCList.appendChild(div);
             });
-            const label = document.createElement('label');
-            label.htmlFor = 'new-' + dc.id;
-            label.textContent = dc.name;
-            div.appendChild(checkbox);
-            div.appendChild(label);
-            newDCList.appendChild(div);
-        });
+        }
+
+        // Initial checkbox setup
+        reinitializeNewScenarioCheckboxes();
 
         // Initial assignment and draw for new scenario
         assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
@@ -1460,9 +1474,16 @@
             `;
         });
 
+        // Store preloaded scenario state for reset functionality
+        let preloadedState = null;
+
         // Preload scenario handler
         document.getElementById('preload-scenario-select').addEventListener('change', (e) => {
-            if (e.target.value === '') return;
+            if (e.target.value === '') {
+                preloadedState = null;
+                document.getElementById('reset-to-preloaded').style.display = 'none';
+                return;
+            }
 
             const preloadScenario = loadScenario(e.target.value, e.target.options[e.target.selectedIndex].text);
 
@@ -1470,17 +1491,50 @@
             newScenarioDCs = JSON.parse(JSON.stringify(preloadScenario.dcLocations));
             newScenarioDemands = JSON.parse(JSON.stringify(preloadScenario.demandPoints));
 
-            // Update checkboxes
-            newScenarioDCs.forEach(dc => {
-                const checkbox = document.getElementById('new-' + dc.id);
-                if (checkbox) checkbox.checked = dc.active;
-            });
+            // Store preloaded state for reset
+            preloadedState = {
+                dcLocations: JSON.parse(JSON.stringify(preloadScenario.dcLocations)),
+                demandPoints: JSON.parse(JSON.stringify(preloadScenario.demandPoints)),
+                firstMileRate: document.getElementById('first-mile-rate').value,
+                lastMileRate: document.getElementById('last-mile-rate').value,
+                storageRate: document.getElementById('storage-rate').value,
+                dio: document.getElementById('dio').value
+            };
+
+            // Reinitialize checkboxes with new DC array
+            reinitializeNewScenarioCheckboxes();
 
             // Update parameters
-            document.getElementById('new-first-mile-rate').value = document.getElementById('first-mile-rate').value;
-            document.getElementById('new-last-mile-rate').value = document.getElementById('last-mile-rate').value;
-            document.getElementById('new-storage-rate').value = document.getElementById('storage-rate').value;
-            document.getElementById('new-dio').value = document.getElementById('dio').value;
+            document.getElementById('new-first-mile-rate').value = preloadedState.firstMileRate;
+            document.getElementById('new-last-mile-rate').value = preloadedState.lastMileRate;
+            document.getElementById('new-storage-rate').value = preloadedState.storageRate;
+            document.getElementById('new-dio').value = preloadedState.dio;
+
+            // Show reset button
+            document.getElementById('reset-to-preloaded').style.display = 'block';
+
+            // Redraw
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            resizeCanvas(newScenarioMapCanvas);
+            drawMapOnCanvas(newScenarioMapCtx, newScenarioMapCanvas, newScenarioDCs, newScenarioDemands);
+        });
+
+        // Reset to preloaded handler
+        document.getElementById('reset-to-preloaded').addEventListener('click', () => {
+            if (!preloadedState) return;
+
+            // Restore preloaded state
+            newScenarioDCs = JSON.parse(JSON.stringify(preloadedState.dcLocations));
+            newScenarioDemands = JSON.parse(JSON.stringify(preloadedState.demandPoints));
+
+            // Reinitialize checkboxes with restored DC array
+            reinitializeNewScenarioCheckboxes();
+
+            // Restore parameters
+            document.getElementById('new-first-mile-rate').value = preloadedState.firstMileRate;
+            document.getElementById('new-last-mile-rate').value = preloadedState.lastMileRate;
+            document.getElementById('new-storage-rate').value = preloadedState.storageRate;
+            document.getElementById('new-dio').value = preloadedState.dio;
 
             // Redraw
             assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
