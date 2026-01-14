@@ -770,6 +770,54 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Factory Data Section -->
+                    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px; margin-top: 30px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 18px; color: var(--text-dark);">Factory Data</h3>
+                        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                            Upload a CSV file with columns: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">lat,lng</code>
+                        </p>
+
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                            <input type="file" id="factory-csv-input" accept=".csv" style="flex: 1; min-width: 200px;">
+                            <button id="load-factory-btn" class="btn" style="padding: 10px 20px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Load CSV</button>
+                            <button id="reset-factory-btn" class="btn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Reset to Default</button>
+                        </div>
+
+                        <div id="factory-data-summary" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #666;">Current Data:</span>
+                                <strong><span id="factory-count">0</span> factories</strong>
+                            </div>
+                        </div>
+
+                        <div id="factory-csv-error" style="color: #d32f2f; margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px; display: none;"></div>
+                        <div id="factory-csv-success" style="color: #2e7d32; margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 4px; display: none;"></div>
+                    </div>
+
+                    <!-- DC Data Section -->
+                    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px; margin-top: 30px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 18px; color: var(--text-dark);">Distribution Center Data</h3>
+                        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                            Upload a CSV file with columns: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">lat,lng</code>
+                        </p>
+
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                            <input type="file" id="dc-csv-input" accept=".csv" style="flex: 1; min-width: 200px;">
+                            <button id="load-dc-btn" class="btn" style="padding: 10px 20px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Load CSV</button>
+                            <button id="reset-dc-btn" class="btn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Reset to Default</button>
+                        </div>
+
+                        <div id="dc-data-summary" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #666;">Current Data:</span>
+                                <strong><span id="dc-count">0</span> distribution centers</strong>
+                            </div>
+                        </div>
+
+                        <div id="dc-csv-error" style="color: #d32f2f; margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 4px; display: none;"></div>
+                        <div id="dc-csv-success" style="color: #2e7d32; margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 4px; display: none;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1212,18 +1260,32 @@
                 const line = lines[i].trim();
                 if (!line) continue; // Skip empty lines
 
-                const values = line.split(',').map(v => v.trim());
-                if (values.length < 3) continue;
+                // Split by comma and reconstruct demand if it contains commas
+                const allValues = line.split(',').map(v => v.trim());
 
-                const lat = parseFloat(values[latIdx]);
-                const lng = parseFloat(values[lngIdx]);
-                const demand = parseInt(values[demandIdx]);
-
-                if (isNaN(lat) || isNaN(lng) || isNaN(demand)) {
-                    throw new Error(`Invalid data on row ${i + 1}: lat=${values[latIdx]}, lng=${values[lngIdx]}, demand=${values[demandIdx]}`);
+                // If we have more than 3 values, the demand column has commas - rejoin them
+                let lat, lng, demandStr;
+                if (allValues.length === 3) {
+                    // Simple case: no commas in numbers
+                    lat = parseFloat(allValues[latIdx]);
+                    lng = parseFloat(allValues[lngIdx]);
+                    demandStr = allValues[demandIdx];
+                } else {
+                    // Demand has commas - first two are lat/lng, rest is demand
+                    lat = parseFloat(allValues[0]);
+                    lng = parseFloat(allValues[1]);
+                    // Join all remaining parts and remove commas
+                    demandStr = allValues.slice(2).join('');
                 }
 
-                demands.push({ lat, lng, demand, cluster: i, assignedDC: null, distance: 0 });
+                // Remove any remaining commas from demand string
+                const demand = parseFloat(demandStr.replace(/,/g, ''));
+
+                if (isNaN(lat) || isNaN(lng) || isNaN(demand)) {
+                    throw new Error(`Invalid data on row ${i + 1}: lat=${allValues[0]}, lng=${allValues[1]}, demand=${demandStr}`);
+                }
+
+                demands.push({ lat, lng, demand: Math.round(demand), cluster: i, assignedDC: null, distance: 0 });
             }
 
             if (demands.length === 0) {
@@ -1231,6 +1293,98 @@
             }
 
             return demands;
+        }
+
+        // Parse factory data from CSV
+        function parseFactoriesCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                throw new Error('CSV must have header row and at least one data row');
+            }
+
+            const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+            const latIdx = header.indexOf('lat');
+            const lngIdx = header.indexOf('lng');
+
+            if (latIdx === -1 || lngIdx === -1) {
+                throw new Error('CSV must have columns: lat, lng');
+            }
+
+            const newFactories = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = line.split(',').map(v => v.trim());
+                if (values.length < 2) continue;
+
+                const lat = parseFloat(values[latIdx]);
+                const lng = parseFloat(values[lngIdx]);
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    throw new Error(`Invalid data on row ${i + 1}: lat=${values[latIdx]}, lng=${values[lngIdx]}`);
+                }
+
+                newFactories.push({
+                    id: 'F' + i,
+                    name: 'Factory ' + i,
+                    lat,
+                    lng,
+                    active: true
+                });
+            }
+
+            if (newFactories.length === 0) {
+                throw new Error('No valid factory locations found in CSV');
+            }
+
+            return newFactories;
+        }
+
+        // Parse DC data from CSV
+        function parseDCsCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                throw new Error('CSV must have header row and at least one data row');
+            }
+
+            const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+            const latIdx = header.indexOf('lat');
+            const lngIdx = header.indexOf('lng');
+
+            if (latIdx === -1 || lngIdx === -1) {
+                throw new Error('CSV must have columns: lat, lng');
+            }
+
+            const newDCs = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = line.split(',').map(v => v.trim());
+                if (values.length < 2) continue;
+
+                const lat = parseFloat(values[latIdx]);
+                const lng = parseFloat(values[lngIdx]);
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    throw new Error(`Invalid data on row ${i + 1}: lat=${values[latIdx]}, lng=${values[lngIdx]}`);
+                }
+
+                newDCs.push({
+                    id: 'DC' + i,
+                    name: 'DC ' + i,
+                    lat,
+                    lng,
+                    active: true
+                });
+            }
+
+            if (newDCs.length === 0) {
+                throw new Error('No valid DC locations found in CSV');
+            }
+
+            return newDCs;
         }
 
         // Update demand summary display
@@ -1244,6 +1398,22 @@
             }
             // Update data table
             updateDemandTable();
+        }
+
+        // Update factory summary display
+        function updateFactorySummary() {
+            const countEl = document.getElementById('factory-count');
+            if (countEl) {
+                countEl.textContent = factories.length;
+            }
+        }
+
+        // Update DC summary display
+        function updateDCSummary() {
+            const countEl = document.getElementById('dc-count');
+            if (countEl) {
+                countEl.textContent = dcLocations.length;
+            }
         }
 
         // Table sorting state
@@ -2056,6 +2226,8 @@
         generateDemandPoints();
         assignCustomers();
         updateDemandSummary();
+        updateFactorySummary();
+        updateDCSummary();
 
         // Initialize scenario 1 with current state
         scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
@@ -2936,16 +3108,18 @@
                     assignCustomers();
                     updateDemandSummary();
 
-                    // Update main map
-                    if (mapMain) {
-                        renderMapMarkers(mapMain, markersMain, dcLocations, demandPoints, false);
-                    }
-
                     // Update new scenario data
                     newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
                     assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-                    if (mapNewScenario) {
+
+                    // Update New Scenario map if it exists
+                    if (mapNewScenario && markersNewScenario) {
                         renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                    }
+
+                    // Update Analytics maps if they exist
+                    if (mapAnalytics1 && markersAnalytics1) {
+                        renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
                     }
 
                     // Clear file input
@@ -2968,16 +3142,18 @@
             assignCustomers();
             updateDemandSummary();
 
-            // Update main map
-            if (mapMain) {
-                renderMapMarkers(mapMain, markersMain, dcLocations, demandPoints, false);
-            }
-
             // Update new scenario data
             newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
             assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-            if (mapNewScenario) {
+
+            // Update New Scenario map if it exists
+            if (mapNewScenario && markersNewScenario) {
                 renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+            }
+
+            // Update Analytics maps if they exist
+            if (mapAnalytics1 && markersAnalytics1) {
+                renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
             }
 
             const successDiv = document.getElementById('csv-success');
@@ -3010,6 +3186,193 @@
                 }
                 updateDemandTable();
             });
+        });
+
+        // Data Admin: Load Factory CSV handler
+        document.getElementById('load-factory-btn').addEventListener('click', function() {
+            const fileInput = document.getElementById('factory-csv-input');
+            const errorDiv = document.getElementById('factory-csv-error');
+            const successDiv = document.getElementById('factory-csv-success');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorDiv.textContent = 'Please select a CSV file first';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const newFactories = parseFactoriesCSV(e.target.result);
+                    factories = newFactories;
+
+                    // Update displays
+                    updateFactorySummary();
+                    updateFactoryList();
+
+                    // Reassign customers to account for new factories
+                    assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+
+                    // Update New Scenario map if it exists
+                    if (mapNewScenario && markersNewScenario) {
+                        renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                    }
+
+                    // Update Analytics maps if they exist
+                    assignCustomers();
+                    if (mapAnalytics1 && markersAnalytics1) {
+                        renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
+                    }
+
+                    // Clear file input
+                    fileInput.value = '';
+
+                    successDiv.textContent = `Successfully loaded ${newFactories.length} factories`;
+                    successDiv.style.display = 'block';
+                } catch (err) {
+                    errorDiv.textContent = 'Error: ' + err.message;
+                    errorDiv.style.display = 'block';
+                }
+            };
+
+            reader.readAsText(file);
+        });
+
+        // Data Admin: Reset Factory to default handler
+        document.getElementById('reset-factory-btn').addEventListener('click', function() {
+            factories = [
+                {id: 'F1', name: 'Jatake, Tangerang', lat: -6.1897, lng: 106.5108, active: true}
+            ];
+
+            updateFactorySummary();
+            updateFactoryList();
+
+            // Reassign customers
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            assignCustomers();
+
+            // Update New Scenario map if it exists
+            if (mapNewScenario && markersNewScenario) {
+                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+            }
+
+            // Update Analytics maps if they exist
+            if (mapAnalytics1 && markersAnalytics1) {
+                renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
+            }
+
+            const successDiv = document.getElementById('factory-csv-success');
+            const errorDiv = document.getElementById('factory-csv-error');
+            errorDiv.style.display = 'none';
+            successDiv.textContent = 'Reset to default factory data';
+            successDiv.style.display = 'block';
+        });
+
+        // Data Admin: Load DC CSV handler
+        document.getElementById('load-dc-btn').addEventListener('click', function() {
+            const fileInput = document.getElementById('dc-csv-input');
+            const errorDiv = document.getElementById('dc-csv-error');
+            const successDiv = document.getElementById('dc-csv-success');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorDiv.textContent = 'Please select a CSV file first';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const newDCs = parseDCsCSV(e.target.result);
+                    dcLocations = newDCs;
+                    newScenarioDCs = JSON.parse(JSON.stringify(newDCs));
+
+                    // Update displays
+                    updateDCSummary();
+                    reinitializeDCCheckboxes();
+                    reinitializeNewScenarioCheckboxes();
+
+                    // Reassign customers to new DCs
+                    assignCustomers();
+                    assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+
+                    // Update New Scenario map if it exists
+                    if (mapNewScenario && markersNewScenario) {
+                        renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                    }
+
+                    // Update Analytics scenario 1 with new DCs
+                    scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
+                    assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
+                    if (mapAnalytics1 && markersAnalytics1) {
+                        renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
+                    }
+
+                    // Clear file input
+                    fileInput.value = '';
+
+                    successDiv.textContent = `Successfully loaded ${newDCs.length} distribution centers`;
+                    successDiv.style.display = 'block';
+                } catch (err) {
+                    errorDiv.textContent = 'Error: ' + err.message;
+                    errorDiv.style.display = 'block';
+                }
+            };
+
+            reader.readAsText(file);
+        });
+
+        // Data Admin: Reset DC to default handler
+        document.getElementById('reset-dc-btn').addEventListener('click', function() {
+            dcLocations = [
+                {id: 'DC1', name: 'Medan Hub', lat: 3.5952, lng: 98.6722, active: true},
+                {id: 'DC2', name: 'Pekanbaru Hub', lat: 0.5071, lng: 101.4478, active: false},
+                {id: 'DC3', name: 'Palembang Hub', lat: -2.9761, lng: 104.7754, active: true},
+                {id: 'DC4', name: 'Lampung Hub', lat: -5.4294, lng: 105.2610, active: false},
+                {id: 'DC5', name: 'Jakarta Hub', lat: -6.2088, lng: 106.8456, active: true},
+                {id: 'DC6', name: 'Bandung Hub', lat: -6.9175, lng: 107.6191, active: false},
+                {id: 'DC7', name: 'Semarang Hub', lat: -6.9666, lng: 110.4196, active: true},
+                {id: 'DC8', name: 'Yogyakarta Hub', lat: -7.7956, lng: 110.3695, active: false},
+                {id: 'DC9', name: 'Surabaya Hub', lat: -7.2575, lng: 112.7521, active: true},
+                {id: 'DC10', name: 'Malang Hub', lat: -7.9666, lng: 112.6326, active: false},
+                {id: 'DC11', name: 'Padang Hub', lat: -0.9471, lng: 100.4172, active: false},
+                {id: 'DC12', name: 'Jambi Hub', lat: -1.6101, lng: 103.6131, active: false}
+            ];
+            newScenarioDCs = JSON.parse(JSON.stringify(dcLocations));
+
+            updateDCSummary();
+            reinitializeDCCheckboxes();
+            reinitializeNewScenarioCheckboxes();
+
+            // Reassign customers
+            assignCustomers();
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+
+            // Update New Scenario map if it exists
+            if (mapNewScenario && markersNewScenario) {
+                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+            }
+
+            // Update Analytics scenario 1
+            scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
+            assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
+            if (mapAnalytics1 && markersAnalytics1) {
+                renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
+            }
+
+            const successDiv = document.getElementById('dc-csv-success');
+            const errorDiv = document.getElementById('dc-csv-error');
+            errorDiv.style.display = 'none';
+            successDiv.textContent = 'Reset to default DC data';
+            successDiv.style.display = 'block';
         });
 
         // Expand All / Collapse All scenario handlers
