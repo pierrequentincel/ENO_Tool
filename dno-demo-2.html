@@ -527,6 +527,68 @@
                         <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;" id="reference-parameters"></div>
                     </div>
 
+                    <!-- Demand Clustering Tool (Collapsible) -->
+                    <div style="margin-top: 30px; margin-bottom: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <!-- Collapsible Header -->
+                        <div id="clustering-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="clustering-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
+                                <h4 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text-dark);">Demand Clustering Tool</h4>
+                            </div>
+                            <div id="clustering-header-buttons" style="display: flex; gap: 10px;">
+                                <button id="reset-clustering" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Reset</button>
+                                <button id="add-centroids-as-dcs" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Add Centroids</button>
+                                <button id="replace-dcs-with-centroids" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Replace DCs</button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Content -->
+                        <div id="clustering-content" style="display: none; padding: 0 20px 20px 20px;">
+                            <!-- Controls Row -->
+                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                                <!-- Number of Clusters (using number input for performance) -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: #64748b;">Clusters:</label>
+                                    <input type="number" id="cluster-count" min="1" max="200" value="50" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 80px;">
+                                </div>
+
+                                <!-- Algorithm Selection -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: #64748b;">Algorithm:</label>
+                                    <select id="clustering-algorithm" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+                                        <option value="kmeans">Weighted K-Means</option>
+                                        <option value="kmedoids">Weighted K-Medoids</option>
+                                    </select>
+                                </div>
+
+                                <!-- Run Clustering Button -->
+                                <button id="run-clustering" style="padding: 8px 16px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                    Run Clustering
+                                </button>
+
+                                <!-- Divider -->
+                                <div style="width: 1px; height: 24px; background: #ddd;"></div>
+
+                                <!-- Toggle Clustered View -->
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                    <input type="checkbox" id="show-clustered-view">
+                                    <span>Show Clustered View</span>
+                                </label>
+
+                                <!-- Show Centroid Lines -->
+                                <label id="centroid-lines-label" style="display: none; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                    <input type="checkbox" id="show-centroid-lines">
+                                    <span>Show Centroid Lines</span>
+                                </label>
+                            </div>
+
+                            <!-- Clustering Status/Info -->
+                            <div id="clustering-info" style="display: none; padding: 10px 15px; background: #e8f4fd; border-radius: 4px; font-size: 12px; color: var(--cel-dark-blue);">
+                                <!-- Will show clustering results info -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- New Scenario Creator -->
                     <div style="background: white; padding: 20px 25px 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 850px;">
                         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
@@ -695,68 +757,6 @@
                             </div>
                         </div>
 
-                    </div>
-
-                    <!-- Clustering Exercise Section (Collapsible) -->
-                    <div style="margin-top: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-                        <!-- Collapsible Header -->
-                        <div id="clustering-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span id="clustering-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
-                                <h4 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text-dark);">Demand Clustering Exercise</h4>
-                            </div>
-                            <div id="clustering-header-buttons" style="display: flex; gap: 10px;">
-                                <button id="reset-clustering" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Reset</button>
-                                <button id="add-centroids-as-dcs" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Add Centroids</button>
-                                <button id="replace-dcs-with-centroids" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Replace DCs</button>
-                            </div>
-                        </div>
-
-                        <!-- Collapsible Content -->
-                        <div id="clustering-content" style="display: none; padding: 0 20px 20px 20px;">
-                            <!-- Controls Row -->
-                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-                                <!-- Number of Clusters (using number input for performance) -->
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <label style="font-size: 13px; color: #64748b;">Clusters:</label>
-                                    <input type="number" id="cluster-count" min="1" max="200" value="50" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 80px;">
-                                </div>
-
-                                <!-- Algorithm Selection -->
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <label style="font-size: 13px; color: #64748b;">Algorithm:</label>
-                                    <select id="clustering-algorithm" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-                                        <option value="kmeans">Weighted K-Means</option>
-                                        <option value="kmedoids">Weighted K-Medoids</option>
-                                    </select>
-                                </div>
-
-                                <!-- Run Clustering Button -->
-                                <button id="run-clustering" style="padding: 8px 16px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
-                                    Run Clustering
-                                </button>
-
-                                <!-- Divider -->
-                                <div style="width: 1px; height: 24px; background: #ddd;"></div>
-
-                                <!-- Toggle Clustered View -->
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                    <input type="checkbox" id="show-clustered-view">
-                                    <span>Show Clustered View</span>
-                                </label>
-
-                                <!-- Show Centroid Lines -->
-                                <label id="centroid-lines-label" style="display: none; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                    <input type="checkbox" id="show-centroid-lines">
-                                    <span>Show Centroid Lines</span>
-                                </label>
-                            </div>
-
-                            <!-- Clustering Status/Info -->
-                            <div id="clustering-info" style="display: none; padding: 10px 15px; background: #e8f4fd; border-radius: 4px; font-size: 12px; color: var(--cel-dark-blue);">
-                                <!-- Will show clustering results info -->
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Scenario Feed (dynamically populated) -->
