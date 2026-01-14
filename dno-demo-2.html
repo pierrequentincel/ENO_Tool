@@ -697,6 +697,68 @@
 
                     </div>
 
+                    <!-- Clustering Exercise Section (Collapsible) -->
+                    <div style="margin-top: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <!-- Collapsible Header -->
+                        <div id="clustering-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="clustering-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
+                                <h4 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text-dark);">Demand Clustering Exercise</h4>
+                            </div>
+                            <div id="clustering-header-buttons" style="display: flex; gap: 10px;">
+                                <button id="reset-clustering" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Reset</button>
+                                <button id="add-centroids-as-dcs" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Add Centroids</button>
+                                <button id="replace-dcs-with-centroids" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Replace DCs</button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Content -->
+                        <div id="clustering-content" style="display: none; padding: 0 20px 20px 20px;">
+                            <!-- Controls Row -->
+                            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                                <!-- Number of Clusters (using number input for performance) -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: #64748b;">Clusters:</label>
+                                    <input type="number" id="cluster-count" min="1" max="200" value="50" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 80px;">
+                                </div>
+
+                                <!-- Algorithm Selection -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px; color: #64748b;">Algorithm:</label>
+                                    <select id="clustering-algorithm" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+                                        <option value="kmeans">Weighted K-Means</option>
+                                        <option value="kmedoids">Weighted K-Medoids</option>
+                                    </select>
+                                </div>
+
+                                <!-- Run Clustering Button -->
+                                <button id="run-clustering" style="padding: 8px 16px; background: var(--cel-dark-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                                    Run Clustering
+                                </button>
+
+                                <!-- Divider -->
+                                <div style="width: 1px; height: 24px; background: #ddd;"></div>
+
+                                <!-- Toggle Clustered View -->
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                    <input type="checkbox" id="show-clustered-view">
+                                    <span>Show Clustered View</span>
+                                </label>
+
+                                <!-- Show Centroid Lines -->
+                                <label id="centroid-lines-label" style="display: none; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                    <input type="checkbox" id="show-centroid-lines">
+                                    <span>Show Centroid Lines</span>
+                                </label>
+                            </div>
+
+                            <!-- Clustering Status/Info -->
+                            <div id="clustering-info" style="display: none; padding: 10px 15px; background: #e8f4fd; border-radius: 4px; font-size: 12px; color: var(--cel-dark-blue);">
+                                <!-- Will show clustering results info -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Scenario Feed (dynamically populated) -->
                     <div id="scenario-feed-controls" style="margin-top: 40px; display: none;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -934,6 +996,93 @@
                 html: `<div style="background: #FFB366; width: ${size}px; height: ${size}px; border-radius: 50%; border: 1px solid #FF8C00; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>`,
                 iconSize: [size, size],
                 iconAnchor: [size/2, size/2]
+            });
+        }
+
+        // Clustered demand point icon with cluster color
+        function createClusteredDemandIcon(point, clusterColor) {
+            const size = 8;
+            return L.divIcon({
+                className: 'clustered-demand-icon',
+                html: `<div style="background: ${clusterColor}; width: ${size}px; height: ${size}px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.3); box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>`,
+                iconSize: [size, size],
+                iconAnchor: [size/2, size/2]
+            });
+        }
+
+        // Centroid icon (triangle) with cluster color
+        function createCentroidIcon(centroid, clusterIndex, clusterColor) {
+            const size = 16;
+            return L.divIcon({
+                className: 'centroid-icon',
+                html: `<div style="position: relative; width: ${size}px; height: ${size + 14}px; display: flex; flex-direction: column; align-items: center;">
+                    <div style="width: 0; height: 0; border-left: ${size/2}px solid transparent; border-right: ${size/2}px solid transparent; border-bottom: ${size}px solid ${clusterColor}; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));"></div>
+                    <span style="color: ${clusterColor}; font-size: 9px; font-weight: bold; white-space: nowrap; text-shadow: 0 0 2px white, 0 0 2px white; margin-top: 2px;">C${clusterIndex + 1}</span>
+                </div>`,
+                iconSize: [size, size + 14],
+                iconAnchor: [size/2, size]
+            });
+        }
+
+        // Render clustered view on map
+        function renderClusteredView(map, markersLayer, demands, clusteringResult, showLines) {
+            if (!map || !markersLayer) return;
+            markersLayer.clearLayers();
+
+            const { centroids, assignments } = clusteringResult;
+
+            // Add clustered demand points
+            demands.forEach((point, i) => {
+                const clusterIdx = assignments[i];
+                const color = clusterColors[clusterIdx];
+                const icon = createClusteredDemandIcon(point, color);
+                const marker = L.marker([point.lat, point.lng], { icon: icon });
+                marker.bindPopup(`
+                    <b>Demand Point</b><br>
+                    Demand: ${point.demand.toLocaleString()} pallets<br>
+                    Cluster: ${clusterIdx + 1}
+                `);
+                markersLayer.addLayer(marker);
+
+                // Draw line to centroid if enabled
+                if (showLines && centroids[clusterIdx]) {
+                    const centroid = centroids[clusterIdx];
+                    const line = L.polyline(
+                        [[point.lat, point.lng], [centroid.lat, centroid.lng]],
+                        { color: color, weight: 1, opacity: 0.4 }
+                    );
+                    markersLayer.addLayer(line);
+                }
+            });
+
+            // Add centroids as triangles
+            centroids.forEach((centroid, i) => {
+                const color = clusterColors[i];
+                const icon = createCentroidIcon(centroid, i, color);
+                const marker = L.marker([centroid.lat, centroid.lng], { icon: icon });
+
+                const clusterDemand = demands
+                    .filter((_, j) => assignments[j] === i)
+                    .reduce((sum, p) => sum + p.demand, 0);
+                const clusterSize = demands.filter((_, j) => assignments[j] === i).length;
+
+                marker.bindPopup(`
+                    <b>Cluster ${i + 1} Centroid</b><br>
+                    Points: ${clusterSize}<br>
+                    Total Demand: ${clusterDemand.toLocaleString()} pallets<br>
+                    Lat: ${centroid.lat.toFixed(4)}<br>
+                    Lng: ${centroid.lng.toFixed(4)}
+                    ${centroid.isMedoid ? '<br><i>(Medoid - actual demand location)</i>' : ''}
+                `);
+                markersLayer.addLayer(marker);
+            });
+
+            // Still show factories
+            factories.forEach(f => {
+                const icon = createFactoryIcon(f, f.active);
+                const marker = L.marker([f.lat, f.lng], { icon: icon });
+                marker.bindPopup(`<b>${f.name || 'Factory'}</b><br>Status: ${f.active ? 'Active' : 'Inactive'}`);
+                markersLayer.addLayer(marker);
             });
         }
 
@@ -1481,6 +1630,246 @@
 
             return dist;
         }
+
+        // ===== CLUSTERING FUNCTIONS =====
+
+        // Generate N distinct colors using golden angle distribution
+        function generateClusterColors(n) {
+            const colors = [];
+            const goldenAngle = 137.508; // Golden angle in degrees
+
+            for (let i = 0; i < n; i++) {
+                // Hue: Use golden angle distribution for maximum separation
+                const hue = (i * goldenAngle) % 360;
+                // Saturation: Vary between 65-90% for vibrancy
+                const saturation = 65 + (i % 3) * 12.5;
+                // Lightness: Vary between 45-60% for visibility
+                const lightness = 45 + (i % 4) * 5;
+
+                colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+            }
+
+            return colors;
+        }
+
+        // Calculate demand-weighted centroid (center of gravity)
+        function calculateWeightedCentroid(clusterPoints) {
+            if (clusterPoints.length === 0) return null;
+
+            let sumWeightedLat = 0;
+            let sumWeightedLng = 0;
+            let totalDemand = 0;
+
+            clusterPoints.forEach(point => {
+                sumWeightedLat += point.lat * point.demand;
+                sumWeightedLng += point.lng * point.demand;
+                totalDemand += point.demand;
+            });
+
+            return {
+                lat: sumWeightedLat / totalDemand,
+                lng: sumWeightedLng / totalDemand,
+                totalDemand: totalDemand
+            };
+        }
+
+        // K-Means++ initialization for better starting centroids
+        function initializeCentroidsKMeansPlusPlus(points, k) {
+            const centroids = [];
+
+            // First centroid: weighted random selection (favor high-demand points)
+            const totalDemand = points.reduce((sum, p) => sum + p.demand, 0);
+            let r = Math.random() * totalDemand;
+            for (const point of points) {
+                r -= point.demand;
+                if (r <= 0) {
+                    centroids.push({ lat: point.lat, lng: point.lng });
+                    break;
+                }
+            }
+
+            // Remaining centroids: probability proportional to squared distance * demand
+            while (centroids.length < k) {
+                const distances = points.map(p => {
+                    const minDist = Math.min(...centroids.map(c => distance(p, c)));
+                    return minDist * minDist * p.demand; // Weight by demand
+                });
+
+                const totalWeight = distances.reduce((a, b) => a + b, 0);
+                r = Math.random() * totalWeight;
+
+                for (let i = 0; i < points.length; i++) {
+                    r -= distances[i];
+                    if (r <= 0) {
+                        centroids.push({ lat: points[i].lat, lng: points[i].lng });
+                        break;
+                    }
+                }
+            }
+
+            return centroids;
+        }
+
+        // Weighted K-Means clustering algorithm
+        function weightedKMeans(points, k, maxIterations = 100) {
+            if (points.length === 0 || k <= 0) return { centroids: [], assignments: [], iterations: 0 };
+            if (k > points.length) k = points.length;
+
+            // Initialize centroids using K-Means++ strategy
+            let centroids = initializeCentroidsKMeansPlusPlus(points, k);
+
+            let assignments = new Array(points.length).fill(0);
+            let changed = true;
+            let iterations = 0;
+
+            while (changed && iterations < maxIterations) {
+                changed = false;
+                iterations++;
+
+                // Assignment step: assign each point to nearest centroid
+                points.forEach((point, i) => {
+                    let minDist = Infinity;
+                    let bestCluster = 0;
+
+                    centroids.forEach((centroid, j) => {
+                        const dist = distance(point, centroid);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestCluster = j;
+                        }
+                    });
+
+                    if (assignments[i] !== bestCluster) {
+                        assignments[i] = bestCluster;
+                        changed = true;
+                    }
+                });
+
+                // Update step: recalculate weighted centroids
+                const newCentroids = [];
+                for (let j = 0; j < k; j++) {
+                    const clusterPoints = points.filter((_, i) => assignments[i] === j);
+                    if (clusterPoints.length > 0) {
+                        newCentroids.push(calculateWeightedCentroid(clusterPoints));
+                    } else {
+                        // Keep old centroid for empty clusters
+                        newCentroids.push(centroids[j]);
+                    }
+                }
+                centroids = newCentroids;
+            }
+
+            return { centroids, assignments, iterations };
+        }
+
+        // Weighted K-Medoids clustering algorithm (PAM-like)
+        function weightedKMedoids(points, k, maxIterations = 50) {
+            if (points.length === 0 || k <= 0) return { centroids: [], assignments: [], iterations: 0 };
+            if (k > points.length) k = points.length;
+
+            // Initialize medoids using demand-weighted random selection
+            const medoidIndices = [];
+            const totalDemand = points.reduce((sum, p) => sum + p.demand, 0);
+            const used = new Set();
+
+            while (medoidIndices.length < k) {
+                let r = Math.random() * totalDemand;
+                for (let i = 0; i < points.length; i++) {
+                    if (used.has(i)) continue;
+                    r -= points[i].demand;
+                    if (r <= 0) {
+                        medoidIndices.push(i);
+                        used.add(i);
+                        break;
+                    }
+                }
+                // Fallback: add any unused point
+                if (medoidIndices.length < k && medoidIndices.length === used.size) {
+                    for (let i = 0; i < points.length; i++) {
+                        if (!used.has(i)) {
+                            medoidIndices.push(i);
+                            used.add(i);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            let assignments = new Array(points.length).fill(0);
+            let changed = true;
+            let iterations = 0;
+
+            while (changed && iterations < maxIterations) {
+                changed = false;
+                iterations++;
+
+                // Assignment step: assign each point to nearest medoid
+                points.forEach((point, i) => {
+                    let minDist = Infinity;
+                    let bestMedoid = 0;
+
+                    medoidIndices.forEach((mi, j) => {
+                        const dist = distance(point, points[mi]);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            bestMedoid = j;
+                        }
+                    });
+
+                    if (assignments[i] !== bestMedoid) {
+                        assignments[i] = bestMedoid;
+                        changed = true;
+                    }
+                });
+
+                // Swap step: try to improve each medoid by finding better point in cluster
+                for (let j = 0; j < k; j++) {
+                    const clusterIndices = points
+                        .map((_, i) => i)
+                        .filter(i => assignments[i] === j);
+
+                    if (clusterIndices.length === 0) continue;
+
+                    // Find point with minimum weighted total distance to other cluster points
+                    let bestCost = Infinity;
+                    let bestIndex = medoidIndices[j];
+
+                    clusterIndices.forEach(candidateIdx => {
+                        let cost = 0;
+                        clusterIndices.forEach(otherIdx => {
+                            cost += distance(points[candidateIdx], points[otherIdx]) * points[otherIdx].demand;
+                        });
+
+                        if (cost < bestCost) {
+                            bestCost = cost;
+                            bestIndex = candidateIdx;
+                        }
+                    });
+
+                    if (bestIndex !== medoidIndices[j]) {
+                        medoidIndices[j] = bestIndex;
+                        changed = true;
+                    }
+                }
+            }
+
+            // Convert medoid indices to centroid objects
+            const centroids = medoidIndices.map((mi, j) => {
+                const clusterPoints = points.filter((_, i) => assignments[i] === j);
+                const totalClusterDemand = clusterPoints.reduce((sum, p) => sum + p.demand, 0);
+                return {
+                    lat: points[mi].lat,
+                    lng: points[mi].lng,
+                    totalDemand: totalClusterDemand,
+                    isMedoid: true,
+                    sourcePointIndex: mi
+                };
+            });
+
+            return { centroids, assignments, iterations };
+        }
+
+        // ===== END CLUSTERING FUNCTIONS =====
 
         // Assign customers to DCs
         function assignCustomers() {
@@ -2455,6 +2844,11 @@
         let newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
         let scenarioFeedCounter = 0;
 
+        // Clustering state
+        let currentClusteringResult = null;  // { centroids, assignments, iterations }
+        let clusterColors = [];              // Array of HSL color strings
+        let isClusteredViewActive = false;   // Toggle state
+
         // Initialize DC list for new scenario creator
         const newDCList = document.getElementById('new-dc-list');
 
@@ -3374,6 +3768,202 @@
             successDiv.textContent = 'Reset to default DC data';
             successDiv.style.display = 'block';
         });
+
+        // ===== CLUSTERING EVENT HANDLERS =====
+
+        // Clustering section toggle (collapsible)
+        document.getElementById('clustering-toggle').addEventListener('click', function(e) {
+            // Don't toggle if clicking on buttons
+            if (e.target.tagName === 'BUTTON') return;
+
+            const content = document.getElementById('clustering-content');
+            const icon = document.getElementById('clustering-toggle-icon');
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            icon.innerHTML = isHidden ? '&#9660;' : '&#9654;';
+        });
+
+        // Run Clustering button
+        document.getElementById('run-clustering').addEventListener('click', function() {
+            const k = parseInt(document.getElementById('cluster-count').value);
+            const algorithm = document.getElementById('clustering-algorithm').value;
+
+            // Validate input
+            if (isNaN(k) || k < 1 || k > 200) {
+                alert('Please enter a valid number of clusters (1-200).');
+                return;
+            }
+
+            // Show loading indicator
+            const infoDiv = document.getElementById('clustering-info');
+            infoDiv.innerHTML = '<strong>Running clustering...</strong> Please wait.';
+            infoDiv.style.display = 'block';
+
+            // Use setTimeout to allow UI to update before heavy computation
+            setTimeout(() => {
+                // Run selected algorithm
+                if (algorithm === 'kmeans') {
+                    currentClusteringResult = weightedKMeans(newScenarioDemands, k);
+                } else {
+                    currentClusteringResult = weightedKMedoids(newScenarioDemands, k);
+                }
+
+                clusterColors = generateClusterColors(k);
+
+                // Update info display
+                const totalDemand = newScenarioDemands.reduce((sum, p) => sum + p.demand, 0);
+                const avgDemand = Math.round(totalDemand / k);
+                infoDiv.innerHTML =
+                    `<strong>${k} clusters</strong> created in ${currentClusteringResult.iterations} iterations. ` +
+                    `Total demand: ${totalDemand.toLocaleString()} pallets. ` +
+                    `Avg per cluster: ${avgDemand.toLocaleString()} pallets.`;
+
+                // Show centroid lines option
+                document.getElementById('centroid-lines-label').style.display = 'flex';
+
+                // Auto-enable clustered view
+                document.getElementById('show-clustered-view').checked = true;
+                isClusteredViewActive = true;
+
+                // Render clustered view
+                const showLines = document.getElementById('show-centroid-lines').checked;
+                renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
+                                   currentClusteringResult, showLines);
+            }, 0);
+        });
+
+        // Toggle clustered view checkbox
+        document.getElementById('show-clustered-view').addEventListener('change', function() {
+            isClusteredViewActive = this.checked;
+
+            if (this.checked && currentClusteringResult) {
+                const showLines = document.getElementById('show-centroid-lines').checked;
+                renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
+                                   currentClusteringResult, showLines);
+            } else {
+                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+            }
+
+            // Show/hide centroid lines option
+            document.getElementById('centroid-lines-label').style.display =
+                (this.checked && currentClusteringResult) ? 'flex' : 'none';
+        });
+
+        // Toggle centroid lines checkbox
+        document.getElementById('show-centroid-lines').addEventListener('change', function() {
+            if (isClusteredViewActive && currentClusteringResult) {
+                renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
+                                   currentClusteringResult, this.checked);
+            }
+        });
+
+        // Reset clustering button
+        document.getElementById('reset-clustering').addEventListener('click', function() {
+            currentClusteringResult = null;
+            clusterColors = [];
+            isClusteredViewActive = false;
+
+            document.getElementById('show-clustered-view').checked = false;
+            document.getElementById('show-centroid-lines').checked = false;
+            document.getElementById('centroid-lines-label').style.display = 'none';
+            document.getElementById('clustering-info').style.display = 'none';
+
+            // Restore normal map view
+            renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+        });
+
+        // Add centroids as DCs button
+        document.getElementById('add-centroids-as-dcs').addEventListener('click', function() {
+            if (!currentClusteringResult || !currentClusteringResult.centroids) {
+                alert('Please run clustering first.');
+                return;
+            }
+
+            const { centroids } = currentClusteringResult;
+            const startId = dcLocations.length + 1;
+
+            centroids.forEach((centroid, i) => {
+                const newId = 'DC' + (startId + i);
+                const newDC = {
+                    id: newId,
+                    name: `Cluster ${i + 1} Centroid`,
+                    lat: centroid.lat,
+                    lng: centroid.lng,
+                    active: true
+                };
+
+                // Add to both global and scenario DC arrays
+                dcLocations.push(newDC);
+                newScenarioDCs.push(JSON.parse(JSON.stringify(newDC)));
+            });
+
+            // Update UI
+            updateNewScenarioDCList();
+            reinitializeNewScenarioCheckboxes();
+            reinitializeDCCheckboxes();
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+
+            // Turn off clustered view and show normal map with new DCs
+            document.getElementById('show-clustered-view').checked = false;
+            isClusteredViewActive = false;
+            document.getElementById('centroid-lines-label').style.display = 'none';
+            renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+
+            triggerAutoRun();
+
+            alert(`${centroids.length} centroids added as new DCs.`);
+        });
+
+        // Replace DCs with centroids button
+        document.getElementById('replace-dcs-with-centroids').addEventListener('click', function() {
+            if (!currentClusteringResult || !currentClusteringResult.centroids) {
+                alert('Please run clustering first.');
+                return;
+            }
+
+            if (!confirm('This will replace all existing DCs with cluster centroids. Continue?')) {
+                return;
+            }
+
+            const { centroids } = currentClusteringResult;
+
+            // Clear existing DCs
+            dcLocations.length = 0;
+            newScenarioDCs.length = 0;
+
+            // Add centroids as new DCs
+            centroids.forEach((centroid, i) => {
+                const newDC = {
+                    id: 'DC' + (i + 1),
+                    name: `Cluster ${i + 1} Centroid`,
+                    lat: centroid.lat,
+                    lng: centroid.lng,
+                    active: true
+                };
+
+                dcLocations.push(newDC);
+                newScenarioDCs.push(JSON.parse(JSON.stringify(newDC)));
+            });
+
+            // Update UI
+            updateNewScenarioDCList();
+            reinitializeNewScenarioCheckboxes();
+            reinitializeDCCheckboxes();
+            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            updateDCSummary();
+
+            // Turn off clustered view and show normal map with new DCs
+            document.getElementById('show-clustered-view').checked = false;
+            isClusteredViewActive = false;
+            document.getElementById('centroid-lines-label').style.display = 'none';
+            renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+
+            triggerAutoRun();
+
+            alert(`Replaced all DCs with ${centroids.length} cluster centroids.`);
+        });
+
+        // ===== END CLUSTERING EVENT HANDLERS =====
 
         // Expand All / Collapse All scenario handlers
         document.getElementById('expand-all-scenarios').addEventListener('click', function() {
