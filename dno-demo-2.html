@@ -29,6 +29,22 @@
             --text-dark: #2D3748;
             --sidebar-bg: #4A6883;
         }
+        /* Spinner animation for loading states */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
         * {
             box-sizing: border-box;
         }
@@ -695,34 +711,34 @@
                             <!-- Run Button (only shown in Manual mode) -->
                             <button id="run-new-optimization" style="display: none; padding: 10px 20px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;">Run Optimization</button>
 
-                            <!-- Divider -->
-                            <div style="width: 1px; height: 30px; background: #ddd;"></div>
+                            <!-- Run Time Indicator -->
+                            <span id="run-time-indicator" style="display: none; margin-left: 15px; padding: 6px 12px; background: #e8f4fd; color: var(--cel-blue); border-radius: 4px; font-size: 12px; font-weight: 500;"></span>
+
+                            <!-- Spacer to push buttons to the right -->
+                            <div style="flex: 1;"></div>
 
                             <!-- Quick Save Button -->
                             <button id="quick-save-scenario" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">Quick Save</button>
 
                             <!-- Save Button -->
                             <button id="save-new-scenario" style="padding: 10px 20px; background: var(--cel-green); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;">Save Scenario</button>
-
-                            <!-- Run Time Indicator -->
-                            <span id="run-time-indicator" style="display: none; margin-left: 15px; padding: 6px 12px; background: #e8f4fd; color: var(--cel-blue); border-radius: 4px; font-size: 12px; font-weight: 500;"></span>
                         </div>
 
                         <!-- Key Indicators -->
                         <div id="live-indicators" class="metrics-grid" style="grid-template-columns: repeat(8, 1fr); margin-bottom: 15px;">
                             <div class="metric-card">
                                 <div class="metric-label">Total Cost</div>
-                                <div class="metric-sublabel">(M IDR)</div>
+                                <div class="metric-sublabel">(B IDR)</div>
                                 <div class="metric-value" id="live-total-cost">-</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Transport</div>
-                                <div class="metric-sublabel">(M IDR)</div>
+                                <div class="metric-sublabel">(B IDR)</div>
                                 <div class="metric-value" id="live-transport-cost">-</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Storage</div>
-                                <div class="metric-sublabel">(M IDR)</div>
+                                <div class="metric-sublabel">(B IDR)</div>
                                 <div class="metric-value" id="live-storage-cost">-</div>
                             </div>
                             <div class="metric-card">
@@ -976,13 +992,14 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">5.60</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">9.60</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">0.30</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td id="display-dio" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">30</td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">50</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">200</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1400</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td id="display-dio" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">20</td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td id="display-wacc" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">10</td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport Speed</td><td id="display-transport-speed" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">500</td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average delivery speed for lead time</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">NSV per Piece</td><td id="display-nsv" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">300</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Net Sales Value per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Truck Speed</td><td id="display-truck-speed" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">40</td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/h</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average truck speed for deliveries</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Opening Hours</td><td id="display-opening-hours" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">12</td><td style="padding: 10px; border-bottom: 1px solid #eee;">h/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Customer receiving hours per day</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">NSV per Piece</td><td id="display-nsv" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">47,000</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Net Sales Value per unit</td></tr>
                                         <tr><td style="padding: 10px;">Earth Radius</td><td style="padding: 10px; text-align: right;">6,371</td><td style="padding: 10px;">km</td><td style="padding: 10px;">Used in Haversine formula (constant)</td></tr>
                                     </tbody>
                                 </table>
@@ -1000,12 +1017,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-storage" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-dio" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-wacc" step="0.1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport Speed</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-transport-speed" step="10" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average delivery speed for lead time</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Truck Speed</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-truck-speed" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/h</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average truck speed for deliveries</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Opening Hours</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-opening-hours" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">h/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Customer receiving hours per day</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">NSV per Piece</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-nsv" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Net Sales Value per unit</td></tr>
                                         <tr><td style="padding: 10px;">Earth Radius</td><td style="padding: 10px; text-align: right;">6,371</td><td style="padding: 10px;">km</td><td style="padding: 10px;">Used in Haversine formula (constant)</td></tr>
                                     </tbody>
@@ -1081,7 +1099,8 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
                                     <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">NSV (Net Sales Value - Annual)</h4>
-                                    <p style="text-align: center;">$$NSV = \sum \text{demand} \times 12 \times 300$$</p>
+                                    <p style="text-align: center;">$$NSV = \sum \text{demand} \times 47,000$$</p>
+                                    <p style="font-size: 11px; color: #666; text-align: center;">where demand is annual volume (PCS/year)</p>
                                 </div>
 
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
@@ -1107,7 +1126,8 @@
 
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
                                     <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">Average Lead Time</h4>
-                                    <p style="text-align: center;">$$\text{LeadTime} = \frac{1}{n}\sum_{p} \frac{\text{distance}_p}{500}$$</p>
+                                    <p style="text-align: center;">$$\text{LeadTime (days)} = \frac{1}{n}\sum_{p} \frac{\text{distance}_p}{\text{TruckSpeed} \times \text{OpeningHours}}$$</p>
+                                    <p style="font-size: 11px; color: #666; text-align: center; margin-top: 5px;">where TruckSpeed is in km/h and OpeningHours is h/day</p>
                                 </div>
                             </div>
                         </div>
@@ -1227,10 +1247,12 @@
         // JavaScript code here
 
         // ===== DEFAULT PARAMETERS =====
-        const DEFAULT_FIRST_MILE_RATE = 5.60;  // IDR/PCS/1,000km
-        const DEFAULT_LAST_MILE_RATE = 9.60;   // IDR/PCS/1,000km
-        const DEFAULT_STORAGE_RATE = 0.30;     // IDR/PCS/month
-        const DEFAULT_DIO = 30;                // DOS (Days of Stock)
+        const DEFAULT_FIRST_MILE_RATE = 50;    // IDR/PCS/1,000km
+        const DEFAULT_LAST_MILE_RATE = 200;    // IDR/PCS/1,000km
+        const DEFAULT_STORAGE_RATE = 1400;     // IDR/PCS/month
+        const DEFAULT_DIO = 20;                // DOS (Days of Stock)
+        const DEFAULT_TRUCK_SPEED = 40;        // km/h
+        const DEFAULT_OPENING_HOURS = 12;      // hours/day
 
         // ===== LEAFLET MAP INFRASTRUCTURE =====
 
@@ -1785,6 +1807,32 @@
 
         // Initialize maps when DOM is ready
         setTimeout(initAllMaps, 100);
+
+        // Model parameters storage key and loader (needed early for calculations)
+        const MODEL_PARAMS_STORAGE_KEY = 'eno_model_params';
+
+        function loadModelParams() {
+            const saved = localStorage.getItem(MODEL_PARAMS_STORAGE_KEY);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading saved parameters:', e);
+                }
+            }
+            return {
+                firstMileRate: DEFAULT_FIRST_MILE_RATE,
+                lastMileRate: DEFAULT_LAST_MILE_RATE,
+                storageRate: DEFAULT_STORAGE_RATE,
+                dio: DEFAULT_DIO,
+                wacc: 10,
+                truckSpeed: DEFAULT_TRUCK_SPEED,
+                openingHours: DEFAULT_OPENING_HOURS,
+                nsv: 47000
+            };
+        }
+
+        let modelParams = loadModelParams();
 
         // Data structures - Indonesia coordinates (lat/lng)
         let demandPoints = [];
@@ -2511,7 +2559,7 @@
                     });
                     if (bestDC) {
                         // Last mile cost
-                        total += minDist * point.demand * lastMileRate / 1000 * 12;
+                        total += minDist * point.demand * lastMileRate * 12;
                         point.assignedDC = bestDC;
                         point.distance = minDist;
                     }
@@ -2522,7 +2570,7 @@
                     const throughput = targetDemands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
                     const nearestFactory = findNearestActiveFactory(dc);
                     const distFromFactory = nearestFactory ? distance(nearestFactory, dc) : 0;
-                    total += distFromFactory * throughput * firstMileRate / 1000 * 12;
+                    total += distFromFactory * throughput * firstMileRate * 12;
                     const avgInventory = throughput * (dio / 365);
                     // Apply minimum DC size if enabled
                     const billableInventory = minDCSizeEnabled ? Math.max(avgInventory, minDCSize) : avgInventory;
@@ -2570,8 +2618,8 @@
 
         // HiGHS optimization
         async function optimizeWithHiGHS(targetDCs = dcLocations, targetDemands = demandPoints) {
-            const firstMileRate = DEFAULT_FIRST_MILE_RATE;
-            const lastMileRate = DEFAULT_LAST_MILE_RATE;
+            const firstMileRate = DEFAULT_FIRST_MILE_RATE / 1000;
+            const lastMileRate = DEFAULT_LAST_MILE_RATE / 1000;
             const storageRate = DEFAULT_STORAGE_RATE;
             const dio = DEFAULT_DIO;
 
@@ -2592,8 +2640,8 @@
                         const nearestFactory = findNearestActiveFactory(dc);
                         const firstMileDist = nearestFactory ? distance(nearestFactory, dc) : 0;
 
-                        const unitCost = (lastMileDist * lastMileRate / 1000 +
-                                         firstMileDist * firstMileRate / 1000 +
+                        const unitCost = (lastMileDist * lastMileRate +
+                                         firstMileDist * firstMileRate +
                                          (dio / 365) * storageRate) * 12;
                         costs[c][d] = unitCost * customer.demand;
                     }
@@ -2668,8 +2716,8 @@
 
         // GLPK optimization
         async function optimizeWithGLPK(targetDCs = dcLocations, targetDemands = demandPoints) {
-            const firstMileRate = DEFAULT_FIRST_MILE_RATE;
-            const lastMileRate = DEFAULT_LAST_MILE_RATE;
+            const firstMileRate = DEFAULT_FIRST_MILE_RATE / 1000;
+            const lastMileRate = DEFAULT_LAST_MILE_RATE / 1000;
             const storageRate = DEFAULT_STORAGE_RATE;
             const dio = DEFAULT_DIO;
 
@@ -2690,8 +2738,8 @@
                         const nearestFactory = findNearestActiveFactory(dc);
                         const firstMileDist = nearestFactory ? distance(nearestFactory, dc) : 0;
 
-                        const unitCost = (lastMileDist * lastMileRate / 1000 +
-                                         firstMileDist * firstMileRate / 1000 +
+                        const unitCost = (lastMileDist * lastMileRate +
+                                         firstMileDist * firstMileRate +
                                          (dio / 365) * storageRate) * 12;
                         costs[c][d] = unitCost * customer.demand;
                     }
@@ -2820,7 +2868,7 @@
             let totalTransport = 0;
             let totalStorage = 0;
 
-            // Use provided params or get from settings inputs
+            // Use provided params or get from settings inputs (rates in IDR/PCS/1000km, divide by 1000)
             const firstMileRate = (params?.firstMile || DEFAULT_FIRST_MILE_RATE) / 1000;
             const lastMileRate = (params?.lastMile || DEFAULT_LAST_MILE_RATE) / 1000;
             const storageRate = params?.storage || DEFAULT_STORAGE_RATE;
@@ -2862,17 +2910,18 @@
             const totalDemand = demands.reduce((sum, p) => sum + p.demand, 0);
 
             // FMCG Product Structure:
-            // NSV per piece = IDR 300
-            const nsvPerPallet = 300;
-            // NSV is annual (monthly demand × 12 months)
-            const nsv = totalDemand * 12 * nsvPerPallet;
+            // NSV per piece from model params (demand is already annual)
+            const nsvPerPiece = modelParams.nsv || 47000;
+            const nsv = totalDemand * nsvPerPiece;
             const costPerNSV = costs.total / nsv;
 
             // Calculate unit cost to serve
             const unitCostToServe = costs.total / totalDemand;
 
-            // Calculate lead time as simple average of lead time to all customers (distance / 500 km/day)
-            const avgLeadTime = demands.reduce((sum, p) => sum + ((p.distance || 0) / 500), 0) / demands.length;
+            // Calculate lead time: distance / truckSpeed / openingHours (in days)
+            const truckSpeed = modelParams.truckSpeed || DEFAULT_TRUCK_SPEED;
+            const openingHours = modelParams.openingHours || DEFAULT_OPENING_HOURS;
+            const avgLeadTime = demands.reduce((sum, p) => sum + ((p.distance || 0) / truckSpeed / openingHours), 0) / demands.length;
 
             // Calculate total stock: sum for each DC of (DOS * annual throughput)/365
             let totalStock = 0;
@@ -2903,8 +2952,8 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Net Sales Value</div>
-                    <div class="metric-sublabel">(M IDR)</div>
-                    <div class="metric-value">${(nsv / 1000000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
+                    <div class="metric-sublabel">(B IDR)</div>
+                    <div class="metric-value">${(nsv / 1000000000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Net Sales</div>
@@ -2914,8 +2963,8 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Cost-to-Serve</div>
-                    <div class="metric-sublabel">(M IDR)</div>
-                    <div class="metric-value">${(costs.total / 1000000).toFixed(1)}</div>
+                    <div class="metric-sublabel">(B IDR)</div>
+                    <div class="metric-value">${(costs.total / 1000000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Unit CTS</div>
@@ -2924,8 +2973,8 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">IOC</div>
-                    <div class="metric-sublabel">(M IDR)</div>
-                    <div class="metric-value">${(ioc / 1000000).toFixed(1)}</div>
+                    <div class="metric-sublabel">(B IDR)</div>
+                    <div class="metric-value">${(ioc / 1000000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">DOS</div>
@@ -3137,20 +3186,26 @@
         // Update live indicators
         function updateLiveIndicators(costs, demandPoints, dcLocations) {
             // Calculate additional metrics
+            // Demand in data is annual volume, NSV per piece from model params
             const totalDemand = demandPoints.reduce((sum, p) => sum + p.demand, 0);
-            const nsvPerPallet = 300;
-            const nsv = totalDemand * 12 * nsvPerPallet;
+            const nsvPerPiece = (typeof modelParams !== 'undefined' && modelParams.nsv) ? modelParams.nsv : 47000;
+            const nsv = totalDemand * nsvPerPiece;
             const costPerNSV = costs.total / nsv;
             const unitCostToServe = costs.total / totalDemand;
             const dio = parseFloat(document.getElementById('new-dio').value) || 30;
-            const avgLeadTime = demandPoints.reduce((sum, p) => sum + ((p.distance || 0) / 500), 0) / demandPoints.length;
+            // Lead time = distance / truckSpeed / openingHours (in days)
+            const truckSpeed = modelParams.truckSpeed || DEFAULT_TRUCK_SPEED;
+            const openingHours = modelParams.openingHours || DEFAULT_OPENING_HOURS;
+            const avgLeadTime = demandPoints.reduce((sum, p) => sum + ((p.distance || 0) / truckSpeed / openingHours), 0) / demandPoints.length;
 
-            // Update metric card values (matching Analytics tab format)
-            document.getElementById('live-total-cost').textContent = (costs.total / 1000000).toFixed(1);
-            document.getElementById('live-transport-cost').textContent = (costs.transport / 1000000).toFixed(2);
-            document.getElementById('live-storage-cost').textContent = (costs.storage / 1000000).toFixed(2);
+            // Update metric card values (costs are in IDR, display in billions)
+            document.getElementById('live-total-cost').textContent = (costs.total / 1000000000).toFixed(1);
+            document.getElementById('live-transport-cost').textContent = (costs.transport / 1000000000).toFixed(1);
+            document.getElementById('live-storage-cost').textContent = (costs.storage / 1000000000).toFixed(1);
             document.getElementById('live-active-dcs').textContent = costs.activeDCs;
-            document.getElementById('live-cost-per-nsv').textContent = (costPerNSV * 100).toFixed(2) + '%';
+            // Show more precision for small percentages
+            const costPerNSVPercent = costPerNSV * 100;
+            document.getElementById('live-cost-per-nsv').textContent = costPerNSVPercent < 0.01 ? costPerNSVPercent.toFixed(4) + '%' : costPerNSVPercent.toFixed(2) + '%';
             document.getElementById('live-unit-cost').textContent = Math.round(unitCostToServe).toLocaleString();
             document.getElementById('live-dio').textContent = dio;
             document.getElementById('live-lead-time').textContent = avgLeadTime.toFixed(2);
@@ -3585,10 +3640,19 @@
             isOptimizing = true;
 
             const btn = document.getElementById('run-new-optimization');
+            const runTimeIndicator = document.getElementById('run-time-indicator');
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = 'Optimizing...';
             }
+            // Show spinner in the indicator area
+            if (runTimeIndicator) {
+                runTimeIndicator.innerHTML = '<span class="spinner" style="border-color: rgba(56,93,127,0.3); border-top-color: var(--cel-blue);"></span>Optimizing...';
+                runTimeIndicator.style.display = 'inline-flex';
+                runTimeIndicator.style.alignItems = 'center';
+            }
+
+            // Small delay to allow UI to render the spinner before heavy computation
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             try {
                 const solver = selectedSolver;
@@ -3603,7 +3667,7 @@
 
                 // Clone current state
                 const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
-                const runDemands = JSON.parse(JSON.stringify(demandPoints));
+                const runDemands = JSON.parse(JSON.stringify(newScenarioDemands));
 
                 const startTime = performance.now();
 
@@ -3618,14 +3682,14 @@
                         activeDCs.forEach(dc => {
                             const nearestFactory = findNearestActiveFactory(dc);
                             const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
-                            const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                            const throughput = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
                             total += dist * throughput * fm * 12;
                             const avgInventory = throughput * (dio / 365);
                             const billableInventory = minDCSizeEnabled ? Math.max(avgInventory, minDCSize) : avgInventory;
                             total += billableInventory * storage * 12;
                         });
                         demands.forEach(point => {
-                            if (point.assignedDC) {
+                            if (point.assignedDC || point.assignedDCId) {
                                 total += point.distance * point.demand * lm * 12;
                             }
                         });
@@ -3695,10 +3759,8 @@
                 // Update live indicators
                 updateLiveIndicators(costs, runDemands, runDCs);
 
-                // Show run time indicator
-                const runTimeIndicator = document.getElementById('run-time-indicator');
+                // Show run time result (replace spinner)
                 runTimeIndicator.textContent = solverNames[solver] + ' - ' + solveTime + 'ms';
-                runTimeIndicator.style.display = 'inline-block';
 
                 // Update map with optimized network
                 newScenarioDCs.forEach((dc, i) => {
@@ -3736,20 +3798,24 @@
             const activeDCs = dcs.filter(dc => dc.active);
             let totalTransport = 0;
             let totalStorage = 0;
+            // Rates are in IDR/PCS/1000km, divide by 1000 for per-km rate
             const fm = params.firstMile / 1000;
             const lm = params.lastMile / 1000;
 
             activeDCs.forEach(dc => {
                 const nearestFactory = findNearestActiveFactory(dc);
                 const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
-                const throughput = demands.filter(p => p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                // Use assignedDCId for comparison (works after JSON serialization)
+                const throughput = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                // Annual cost: distance * demand * rate * 12 months
                 totalTransport += dist * throughput * fm * 12;
                 const avgInventory = throughput * (params.dio / 365);
                 const billableInventory = params.minDCSizeEnabled ? Math.max(avgInventory, params.minDCSize) : avgInventory;
                 totalStorage += billableInventory * params.storage * 12;
             });
             demands.forEach(point => {
-                if (point.assignedDC) {
+                if (point.assignedDC || point.assignedDCId) {
+                    // Annual cost: distance * demand * rate * 12 months
                     totalTransport += point.distance * point.demand * lm * 12;
                 }
             });
@@ -4110,45 +4176,20 @@
 
         // ===== INFO TAB - DEFAULT PARAMETERS EDIT =====
 
-        const MODEL_PARAMS_STORAGE_KEY = 'eno_model_params';
-
-        // Load saved parameters from localStorage or use defaults
-        function loadModelParams() {
-            const saved = localStorage.getItem(MODEL_PARAMS_STORAGE_KEY);
-            if (saved) {
-                try {
-                    return JSON.parse(saved);
-                } catch (e) {
-                    console.error('Error loading saved parameters:', e);
-                }
-            }
-            return {
-                firstMileRate: DEFAULT_FIRST_MILE_RATE,
-                lastMileRate: DEFAULT_LAST_MILE_RATE,
-                storageRate: DEFAULT_STORAGE_RATE,
-                dio: DEFAULT_DIO,
-                wacc: 10,
-                transportSpeed: 500,
-                nsv: 300
-            };
-        }
-
         // Save parameters to localStorage
         function saveModelParams(params) {
             localStorage.setItem(MODEL_PARAMS_STORAGE_KEY, JSON.stringify(params));
         }
 
-        // Global model parameters (loaded from localStorage)
-        let modelParams = loadModelParams();
-
         // Update display with current values on page load
         function updateParamsDisplay() {
-            document.getElementById('display-first-mile').textContent = modelParams.firstMileRate.toFixed(2);
-            document.getElementById('display-last-mile').textContent = modelParams.lastMileRate.toFixed(2);
-            document.getElementById('display-storage').textContent = modelParams.storageRate.toFixed(2);
+            document.getElementById('display-first-mile').textContent = modelParams.firstMileRate;
+            document.getElementById('display-last-mile').textContent = modelParams.lastMileRate;
+            document.getElementById('display-storage').textContent = modelParams.storageRate;
             document.getElementById('display-dio').textContent = modelParams.dio;
             document.getElementById('display-wacc').textContent = modelParams.wacc;
-            document.getElementById('display-transport-speed').textContent = modelParams.transportSpeed;
+            document.getElementById('display-truck-speed').textContent = modelParams.truckSpeed;
+            document.getElementById('display-opening-hours').textContent = modelParams.openingHours;
             document.getElementById('display-nsv').textContent = modelParams.nsv;
 
             // Also update the New Scenario parameter inputs
@@ -4169,7 +4210,8 @@
             document.getElementById('edit-storage').value = modelParams.storageRate;
             document.getElementById('edit-dio').value = modelParams.dio;
             document.getElementById('edit-wacc').value = modelParams.wacc;
-            document.getElementById('edit-transport-speed').value = modelParams.transportSpeed;
+            document.getElementById('edit-truck-speed').value = modelParams.truckSpeed;
+            document.getElementById('edit-opening-hours').value = modelParams.openingHours;
             document.getElementById('edit-nsv').value = modelParams.nsv;
 
             // Switch to edit mode
@@ -4193,8 +4235,9 @@
             modelParams.storageRate = parseFloat(document.getElementById('edit-storage').value) || DEFAULT_STORAGE_RATE;
             modelParams.dio = parseInt(document.getElementById('edit-dio').value) || DEFAULT_DIO;
             modelParams.wacc = parseFloat(document.getElementById('edit-wacc').value) || 10;
-            modelParams.transportSpeed = parseInt(document.getElementById('edit-transport-speed').value) || 500;
-            modelParams.nsv = parseInt(document.getElementById('edit-nsv').value) || 300;
+            modelParams.truckSpeed = parseInt(document.getElementById('edit-truck-speed').value) || DEFAULT_TRUCK_SPEED;
+            modelParams.openingHours = parseInt(document.getElementById('edit-opening-hours').value) || DEFAULT_OPENING_HOURS;
+            modelParams.nsv = parseInt(document.getElementById('edit-nsv').value) || 47000;
 
             // Save to localStorage for persistence
             saveModelParams(modelParams);
