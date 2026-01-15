@@ -11,6 +11,8 @@
     <!-- Leaflet.js for interactive maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- D3-Delaunay for Voronoi diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
     <style>
         :root {
             --cel-red: #CB333B;
@@ -528,7 +530,7 @@
                     </div>
 
                     <!-- Demand Clustering Tool (Collapsible) -->
-                    <div style="margin-top: 30px; margin-bottom: 30px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <div style="margin-top: 30px; margin-bottom: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         <!-- Collapsible Header -->
                         <div id="clustering-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -571,7 +573,7 @@
 
                                 <!-- Toggle Clustered View -->
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                    <input type="checkbox" id="show-clustered-view">
+                                    <input type="checkbox" id="show-clustered-view" checked>
                                     <span>Show Clustered View</span>
                                 </label>
 
@@ -585,6 +587,27 @@
                             <!-- Clustering Status/Info -->
                             <div id="clustering-info" style="display: none; padding: 10px 15px; background: #e8f4fd; border-radius: 4px; font-size: 12px; color: var(--cel-dark-blue);">
                                 <!-- Will show clustering results info -->
+                            </div>
+
+                            <!-- Clustering Map Section (hidden until Run Clustering) -->
+                            <div id="clustering-map-section" style="display: none; margin-top: 15px;">
+                                <!-- Map Display Toggles -->
+                                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 10px;">
+                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                        <input type="checkbox" id="show-voronoi-tiles" checked>
+                                        <span>Voronoi Tiles</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                        <input type="checkbox" id="show-demand-points" checked>
+                                        <span>Demand Points</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
+                                        <input type="checkbox" id="show-cluster-links">
+                                        <span>Links to Centroids</span>
+                                    </label>
+                                </div>
+                                <!-- Clustering Map -->
+                                <div id="clustering-map" style="width: 100%; height: 520px; border: 1px solid #ccc; border-radius: 8px; z-index: 1;"></div>
                             </div>
                         </div>
                     </div>
@@ -937,12 +960,15 @@
         let mapAnalytics2 = null;
         let mapNewScenario = null;
         let mapReference = null;
+        let mapClustering = null;
 
         // Marker layer groups (for easy clearing/updating)
         let markersAnalytics1 = null;
         let markersAnalytics2 = null;
         let markersNewScenario = null;
         let markersReference = null;
+        let markersClustering = null;
+        let voronoiLayer = null;
 
         // Pending click location for popup
         let pendingClickLocation = null;
@@ -1083,6 +1109,142 @@
                 const marker = L.marker([f.lat, f.lng], { icon: icon });
                 marker.bindPopup(`<b>${f.name || 'Factory'}</b><br>Status: ${f.active ? 'Active' : 'Inactive'}`);
                 markersLayer.addLayer(marker);
+            });
+        }
+
+        // Create Voronoi polygons from centroids
+        function createVoronoiPolygons(centroids, bounds) {
+            if (!centroids || centroids.length < 2) return [];
+
+            // Convert centroids to points array [lng, lat] for d3-delaunay
+            const points = centroids.map(c => [c.lng, c.lat]);
+
+            // Create Delaunay triangulation and Voronoi diagram
+            const delaunay = d3.Delaunay.from(points);
+            const voronoi = delaunay.voronoi([bounds.west, bounds.south, bounds.east, bounds.north]);
+
+            // Extract polygons for each centroid
+            const polygons = [];
+            for (let i = 0; i < centroids.length; i++) {
+                const cellPolygon = voronoi.cellPolygon(i);
+                if (cellPolygon) {
+                    // Convert [lng, lat] back to [lat, lng] for Leaflet
+                    const latLngs = cellPolygon.map(p => [p[1], p[0]]);
+                    polygons.push({
+                        index: i,
+                        latLngs: latLngs,
+                        centroid: centroids[i]
+                    });
+                }
+            }
+            return polygons;
+        }
+
+        // Render clustering map with Voronoi tiles, demand points, and links
+        function renderClusteringMap(options = {}) {
+            if (!mapClustering || !markersClustering || !currentClusteringResult) return;
+
+            const { showVoronoi = true, showDemandPoints = true, showLinks = false } = options;
+            const { centroids, assignments } = currentClusteringResult;
+
+            // Clear existing layers
+            markersClustering.clearLayers();
+            if (voronoiLayer) {
+                mapClustering.removeLayer(voronoiLayer);
+                voronoiLayer = null;
+            }
+
+            // Add Voronoi tiles
+            if (showVoronoi && centroids.length >= 2) {
+                const bounds = {
+                    west: 90,
+                    east: 145,
+                    south: -15,
+                    north: 10
+                };
+                const voronoiPolygons = createVoronoiPolygons(centroids, bounds);
+                voronoiLayer = L.layerGroup();
+
+                voronoiPolygons.forEach(poly => {
+                    const color = clusterColors[poly.index];
+                    const polygon = L.polygon(poly.latLngs, {
+                        color: color,
+                        weight: 2,
+                        fillColor: color,
+                        fillOpacity: 0.15,
+                        opacity: 0.6
+                    });
+
+                    const clusterDemand = newScenarioDemands
+                        .filter((_, j) => assignments[j] === poly.index)
+                        .reduce((sum, p) => sum + p.demand, 0);
+                    const clusterSize = newScenarioDemands.filter((_, j) => assignments[j] === poly.index).length;
+
+                    polygon.bindPopup(`
+                        <b>Cluster ${poly.index + 1}</b><br>
+                        Points: ${clusterSize}<br>
+                        Total Demand: ${clusterDemand.toLocaleString()} pallets
+                    `);
+                    voronoiLayer.addLayer(polygon);
+                });
+
+                voronoiLayer.addTo(mapClustering);
+            }
+
+            // Add demand points
+            if (showDemandPoints) {
+                newScenarioDemands.forEach((point, i) => {
+                    const clusterIdx = assignments[i];
+                    const color = clusterColors[clusterIdx];
+                    const icon = createClusteredDemandIcon(point, color);
+                    const marker = L.marker([point.lat, point.lng], { icon: icon });
+                    marker.bindPopup(`
+                        <b>Demand Point</b><br>
+                        Demand: ${point.demand.toLocaleString()} pallets<br>
+                        Cluster: ${clusterIdx + 1}
+                    `);
+                    markersClustering.addLayer(marker);
+
+                    // Draw line to centroid if enabled
+                    if (showLinks && centroids[clusterIdx]) {
+                        const centroid = centroids[clusterIdx];
+                        const line = L.polyline(
+                            [[point.lat, point.lng], [centroid.lat, centroid.lng]],
+                            { color: color, weight: 1, opacity: 0.4 }
+                        );
+                        markersClustering.addLayer(line);
+                    }
+                });
+            }
+
+            // Add centroids as triangles
+            centroids.forEach((centroid, i) => {
+                const color = clusterColors[i];
+                const icon = createCentroidIcon(centroid, i, color);
+                const marker = L.marker([centroid.lat, centroid.lng], { icon: icon });
+
+                const clusterDemand = newScenarioDemands
+                    .filter((_, j) => assignments[j] === i)
+                    .reduce((sum, p) => sum + p.demand, 0);
+                const clusterSize = newScenarioDemands.filter((_, j) => assignments[j] === i).length;
+
+                marker.bindPopup(`
+                    <b>Cluster ${i + 1} Centroid</b><br>
+                    Points: ${clusterSize}<br>
+                    Total Demand: ${clusterDemand.toLocaleString()} pallets<br>
+                    Lat: ${centroid.lat.toFixed(4)}<br>
+                    Lng: ${centroid.lng.toFixed(4)}
+                    ${centroid.isMedoid ? '<br><i>(Medoid - actual demand location)</i>' : ''}
+                `);
+                markersClustering.addLayer(marker);
+            });
+
+            // Show factories
+            factories.forEach(f => {
+                const icon = createFactoryIcon(f, f.active);
+                const marker = L.marker([f.lat, f.lng], { icon: icon });
+                marker.bindPopup(`<b>${f.name || 'Factory'}</b><br>Status: ${f.active ? 'Active' : 'Inactive'}`);
+                markersClustering.addLayer(marker);
             });
         }
 
@@ -3825,10 +3987,34 @@
                 document.getElementById('show-clustered-view').checked = true;
                 isClusteredViewActive = true;
 
-                // Render clustered view
+                // Render clustered view on main map
                 const showLines = document.getElementById('show-centroid-lines').checked;
                 renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
                                    currentClusteringResult, showLines);
+
+                // Show and initialize the clustering map section
+                const mapSection = document.getElementById('clustering-map-section');
+                mapSection.style.display = 'block';
+
+                // Initialize clustering map if not already done
+                if (!mapClustering) {
+                    mapClustering = initLeafletMap('clustering-map');
+                    if (mapClustering) {
+                        markersClustering = L.layerGroup().addTo(mapClustering);
+                    }
+                }
+
+                // Render clustering map with Voronoi
+                if (mapClustering) {
+                    setTimeout(() => {
+                        mapClustering.invalidateSize();
+                        renderClusteringMap({
+                            showVoronoi: document.getElementById('show-voronoi-tiles').checked,
+                            showDemandPoints: document.getElementById('show-demand-points').checked,
+                            showLinks: document.getElementById('show-cluster-links').checked
+                        });
+                    }, 100);
+                }
             }, 0);
         });
 
@@ -3863,13 +4049,56 @@
             clusterColors = [];
             isClusteredViewActive = false;
 
-            document.getElementById('show-clustered-view').checked = false;
+            document.getElementById('show-clustered-view').checked = true; // Keep checked by default
             document.getElementById('show-centroid-lines').checked = false;
             document.getElementById('centroid-lines-label').style.display = 'none';
             document.getElementById('clustering-info').style.display = 'none';
 
+            // Hide clustering map section
+            document.getElementById('clustering-map-section').style.display = 'none';
+
+            // Clear clustering map layers
+            if (markersClustering) {
+                markersClustering.clearLayers();
+            }
+            if (voronoiLayer && mapClustering) {
+                mapClustering.removeLayer(voronoiLayer);
+                voronoiLayer = null;
+            }
+
             // Restore normal map view
             renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+        });
+
+        // Clustering map visualization toggle handlers
+        document.getElementById('show-voronoi-tiles').addEventListener('change', function() {
+            if (currentClusteringResult && mapClustering) {
+                renderClusteringMap({
+                    showVoronoi: this.checked,
+                    showDemandPoints: document.getElementById('show-demand-points').checked,
+                    showLinks: document.getElementById('show-cluster-links').checked
+                });
+            }
+        });
+
+        document.getElementById('show-demand-points').addEventListener('change', function() {
+            if (currentClusteringResult && mapClustering) {
+                renderClusteringMap({
+                    showVoronoi: document.getElementById('show-voronoi-tiles').checked,
+                    showDemandPoints: this.checked,
+                    showLinks: document.getElementById('show-cluster-links').checked
+                });
+            }
+        });
+
+        document.getElementById('show-cluster-links').addEventListener('change', function() {
+            if (currentClusteringResult && mapClustering) {
+                renderClusteringMap({
+                    showVoronoi: document.getElementById('show-voronoi-tiles').checked,
+                    showDemandPoints: document.getElementById('show-demand-points').checked,
+                    showLinks: this.checked
+                });
+            }
         });
 
         // Add centroids as DCs button
