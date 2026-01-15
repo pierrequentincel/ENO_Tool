@@ -11,8 +11,12 @@
     <!-- Leaflet.js for interactive maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- D3-Delaunay for Voronoi diagrams -->
+    <!-- D3 Delaunay for Voronoi diagrams -->
     <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+    <!-- KaTeX for LaTeX formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         :root {
             --cel-red: #CB333B;
@@ -37,86 +41,67 @@
         }
         .container {
             display: flex;
+            flex-direction: column;
             height: 100vh;
         }
 
-        /* Sidebar */
-        #sidebar {
-            width: 320px;
-            background-color: var(--sidebar-bg);
-            color: white;
-            padding: 30px 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .logo-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo-section img {
-            width: 200px;
-            margin-bottom: 20px;
-        }
-        .company-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .project-name {
-            font-size: 14px;
-            opacity: 0.9;
-            border-top: 2px solid rgba(255,255,255,0.3);
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .sidebar-section {
-            margin-bottom: 30px;
-        }
-        .sidebar-section h3 {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .scenario-select, .unit-select {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: white;
-            color: var(--text-dark);
-            font-size: 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-        .sidebar-button {
-            background-color: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 10px;
-            font-size: 14px;
+        /* Header Navigation Bar */
+        .header-nav {
             display: flex;
             align-items: center;
-            justify-content: center;
+            background-color: white;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0 20px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-right: 30px;
+            border-right: 1px solid #e2e8f0;
+            margin-right: 10px;
+        }
+        .header-brand img {
+            height: 36px;
+            width: auto;
+            background-color: var(--cel-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .header-brand-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--cel-blue);
+            letter-spacing: -0.5px;
+        }
+
+        /* Scenario Selection for Analytics */
+        .scenario-selection-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        .scenario-selection-bar label {
+            font-size: 13px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
-        .sidebar-button:hover {
-            background-color: rgba(255,255,255,0.3);
-        }
-        .sidebar-button.primary {
-            background-color: var(--cel-blue);
-            border-color: var(--cel-blue);
-        }
-        .sidebar-button.primary:hover {
-            background-color: var(--cel-dark-blue);
+        .scenario-selection-bar select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            min-width: 180px;
         }
 
         /* Main Content */
@@ -130,15 +115,16 @@
         /* Tabs */
         .tabs {
             display: flex;
-            background-color: white;
-            border-bottom: 2px solid #e2e8f0;
+            align-items: center;
         }
         .tab {
-            padding: 15px 30px;
+            padding: 18px 24px;
             cursor: pointer;
             border-bottom: 3px solid transparent;
             font-weight: 500;
             color: #64748b;
+            font-size: 14px;
+            margin-bottom: -2px;
         }
         .tab.active {
             color: var(--cel-blue);
@@ -312,155 +298,53 @@
             font-size: 12px;
         }
 
-        /* Settings Expander */
-        .settings-expander {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-        .settings-toggle {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .settings-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        .settings-content.expanded {
-            max-height: 800px;
-        }
-        .parameter-input {
-            margin-bottom: 15px;
-        }
-        .parameter-input label {
-            display: block;
-            font-size: 12px;
-            margin-bottom: 5px;
-            opacity: 0.9;
-        }
-        .parameter-input input {
-            width: 100%;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .dc-list {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-        .dc-checkbox {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        .dc-checkbox input {
-            margin-right: 8px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
-        <div id="sidebar">
-            <div class="logo-section">
+        <!-- Header Navigation Bar -->
+        <div class="header-nav">
+            <div class="header-brand">
                 <img src="pictures/ATOM_logo.png" alt="ATOM Logo">
-                <div class="company-name">Acme Milk Corporate (AMC)</div>
-                <div class="project-name">Distribution Network Design</div>
+                <span class="header-brand-text">ENO Sandbox</span>
             </div>
-
-            <button class="sidebar-button primary">
-                ℹ️ Scenario Comparison
-            </button>
-
-            <div class="sidebar-section">
-                <h3>Scenario Selection</h3>
-                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px;">First Scenario:</label>
-                <select class="scenario-select" id="scenario-select-1">
-                    <option value="baseline">0,5_Baseline_2028</option>
-                </select>
-
-                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Second Scenario:</label>
-                <select class="scenario-select" id="scenario-select-2">
-                    <option value="">Choose an option</option>
-                    <option value="baseline">0,5_Baseline_2028</option>
-                </select>
-
-                <label style="font-size: 12px; opacity: 0.9; display: block; margin-bottom: 5px; margin-top: 15px;">Third Scenario:</label>
-                <select class="scenario-select" id="scenario-select-3">
-                    <option value="">Choose an option</option>
-                    <option value="baseline">0,5_Baseline_2028</option>
-                </select>
-            </div>
-
-            <div class="sidebar-section">
-                <h3>Unit Selection</h3>
-                <select class="unit-select" id="unit-select">
-                    <option value="usd">US Dollar (USD)</option>
-                    <option value="eur">Euro (EUR)</option>
-                </select>
-            </div>
-
-            <button class="sidebar-button" id="run-optimization">
-                🔄 Run Optimization
-            </button>
-            <button class="sidebar-button" id="save-scenario">
-                💾 Save Scenario
-            </button>
-
-            <div class="settings-expander">
-                <div class="settings-toggle" id="settings-toggle">
-                    <span>⚙️ Advanced Settings</span>
-                    <span id="toggle-icon">▼</span>
-                </div>
-                <div class="settings-content" id="settings-content">
-                    <div class="sidebar-section">
-                        <h3>Parameters</h3>
-                        <div class="parameter-input">
-                            <label>First Mile Rate ($/pallet/1,000km):</label>
-                            <input type="number" id="first-mile-rate" value="5.60" step="0.01">
-                        </div>
-                        <div class="parameter-input">
-                            <label>Last Mile Rate ($/pallet/1,000km):</label>
-                            <input type="number" id="last-mile-rate" value="9.60" step="0.01">
-                        </div>
-                        <div class="parameter-input">
-                            <label>Storage Rate ($/pallet/month):</label>
-                            <input type="number" id="storage-rate" value="0.30" step="0.01">
-                        </div>
-                        <div class="parameter-input">
-                            <label>DIO (days):</label>
-                            <input type="number" id="dio" value="30">
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <h3>DC Selection</h3>
-                        <div class="dc-list" id="dc-list"></div>
-                    </div>
-                </div>
+            <div class="tabs">
+                <div class="tab active" data-tab="new-scenario">New Scenario</div>
+                <div class="tab" data-tab="analytics">Analytics</div>
+                <div class="tab" data-tab="data-admin">Data Admin</div>
+                <div class="tab" data-tab="info">Documentation</div>
             </div>
         </div>
 
         <!-- Main Content -->
         <div id="main-content">
-            <div class="tabs">
-                <div class="tab active" data-tab="new-scenario">New Scenario</div>
-                <div class="tab" data-tab="analytics">Analytics</div>
-                <div class="tab" data-tab="data-admin">Data Admin</div>
-            </div>
-
             <div class="content-area">
                 <!-- Analytics Tab -->
                 <div class="tab-content" id="analytics-tab">
+                    <!-- Scenario Selection -->
+                    <div class="scenario-selection-bar">
+                        <label>
+                            <span>First Scenario:</span>
+                            <select id="scenario-select-1">
+                                <option value="baseline">0,5_Baseline_2028</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Second Scenario:</span>
+                            <select id="scenario-select-2">
+                                <option value="">Choose an option</option>
+                                <option value="baseline">0,5_Baseline_2028</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Third Scenario:</span>
+                            <select id="scenario-select-3">
+                                <option value="">Choose an option</option>
+                                <option value="baseline">0,5_Baseline_2028</option>
+                            </select>
+                        </label>
+                    </div>
+
                     <h2 class="section-title">Key Metrics</h2>
 
                     <!-- Scenario 1 -->
@@ -513,20 +397,183 @@
                 <div class="tab-content active" id="new-scenario-tab">
                     <h2 class="section-title">New Scenario</h2>
 
-                    <!-- Reference Scenario Section - inline layout -->
-                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                        <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Reference Scenario</h3>
-                        <select id="reference-scenario-select" style="width: 250px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                            <option value="">Select a scenario...</option>
-                            <option value="baseline">0,5_Baseline_2028</option>
-                        </select>
-                    </div>
-                    <div id="reference-scenario-display" style="display: none; margin-bottom: 20px;">
-                        <div class="metrics-grid" id="reference-metrics"></div>
-                        <div style="margin-top: 20px;">
-                            <div id="reference-map" style="width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 8px; z-index: 1;"></div>
+                    <!-- Data Input (Collapsible) -->
+                    <div style="margin-top: 30px; margin-bottom: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <!-- Collapsible Header -->
+                        <div id="data-input-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="data-input-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
+                                <img src="pictures/data.png" alt="Data" style="height: 24px; width: auto;">
+                                <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Data Input</h3>
+                            </div>
                         </div>
-                        <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;" id="reference-parameters"></div>
+
+                        <!-- Collapsible Content -->
+                        <div id="data-input-content" style="display: none; padding: 0 20px 20px 20px;">
+
+                            <!-- 3-Column Layout -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+
+                            <!-- Demand Data Section -->
+                            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">Demand Data</h4>
+                                    <span style="font-size: 10px; color: #888;">lat, lng, demand</span>
+                                </div>
+
+                                <!-- File Selection -->
+                                <select id="demand-file-select" style="width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                                    <option value="">-- Select a file --</option>
+                                </select>
+                                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                                    <button id="demand-file-save" style="flex: 1; padding: 5px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Save current data">Save</button>
+                                    <button id="demand-file-rename" style="flex: 1; padding: 5px 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Rename selected file">Rename</button>
+                                    <button id="demand-file-delete" style="flex: 1; padding: 5px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Delete selected file">Delete</button>
+                                </div>
+
+                                <!-- Upload Area -->
+                                <div id="demand-drop-zone" style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 8px;">
+                                    <input type="file" id="demand-file-upload" accept=".csv" style="display: none;">
+                                    <div style="color: #666; font-size: 12px;">
+                                        <span style="font-size: 20px; display: block; margin-bottom: 4px;">📁</span>
+                                        Drop CSV or <span style="color: #007bff; text-decoration: underline;">browse</span>
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div id="demand-file-status" style="font-size: 11px; color: #666; margin-bottom: 8px;">
+                                    <span id="demand-point-count">0</span> demand points loaded
+                                </div>
+
+                                <!-- Expandable Data Table -->
+                                <div>
+                                    <div id="demand-table-toggle-input" style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
+                                        <span id="demand-table-icon-input" style="font-size: 10px; color: #666;">&#9654;</span>
+                                        <span style="font-size: 11px; color: #666;">View Data Table</span>
+                                    </div>
+                                    <div id="demand-table-container-input" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 4px;">
+                                        <table id="demand-data-table-input" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                            <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                                                <tr>
+                                                    <th style="padding: 6px; text-align: left; border-bottom: 1px solid #dee2e6;">#</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lat</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lng</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Demand</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="demand-table-body-input"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Factories Data Section -->
+                            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">Factories Data</h4>
+                                    <span style="font-size: 10px; color: #888;">lat, lng</span>
+                                </div>
+
+                                <!-- File Selection -->
+                                <select id="factories-file-select" style="width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                                    <option value="">-- Select a file --</option>
+                                </select>
+                                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                                    <button id="factories-file-save" style="flex: 1; padding: 5px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Save current data">Save</button>
+                                    <button id="factories-file-rename" style="flex: 1; padding: 5px 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Rename selected file">Rename</button>
+                                    <button id="factories-file-delete" style="flex: 1; padding: 5px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Delete selected file">Delete</button>
+                                </div>
+
+                                <!-- Upload Area -->
+                                <div id="factories-drop-zone" style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 8px;">
+                                    <input type="file" id="factories-file-upload" accept=".csv" style="display: none;">
+                                    <div style="color: #666; font-size: 12px;">
+                                        <span style="font-size: 20px; display: block; margin-bottom: 4px;">🏭</span>
+                                        Drop CSV or <span style="color: #007bff; text-decoration: underline;">browse</span>
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div id="factories-file-status" style="font-size: 11px; color: #666; margin-bottom: 8px;">
+                                    <span id="factories-point-count">0</span> factories loaded
+                                </div>
+
+                                <!-- Expandable Data Table -->
+                                <div>
+                                    <div id="factories-table-toggle-input" style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
+                                        <span id="factories-table-icon-input" style="font-size: 10px; color: #666;">&#9654;</span>
+                                        <span style="font-size: 11px; color: #666;">View Data Table</span>
+                                    </div>
+                                    <div id="factories-table-container-input" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 4px;">
+                                        <table id="factories-data-table-input" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                            <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                                                <tr>
+                                                    <th style="padding: 6px; text-align: left; border-bottom: 1px solid #dee2e6;">#</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lat</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lng</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="factories-table-body-input"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DCs Data Section -->
+                            <div style="border: 1px solid #e9ecef; border-radius: 8px; padding: 15px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-dark);">DCs Data</h4>
+                                    <span style="font-size: 10px; color: #888;">lat, lng</span>
+                                </div>
+
+                                <!-- File Selection -->
+                                <select id="dcs-file-select" style="width: 100%; padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; margin-bottom: 6px;">
+                                    <option value="">-- Select a file --</option>
+                                </select>
+                                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                                    <button id="dcs-file-save" style="flex: 1; padding: 5px 8px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Save current data">Save</button>
+                                    <button id="dcs-file-rename" style="flex: 1; padding: 5px 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Rename selected file">Rename</button>
+                                    <button id="dcs-file-delete" style="flex: 1; padding: 5px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;" title="Delete selected file">Delete</button>
+                                </div>
+
+                                <!-- Upload Area -->
+                                <div id="dcs-drop-zone" style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 8px;">
+                                    <input type="file" id="dcs-file-upload" accept=".csv" style="display: none;">
+                                    <div style="color: #666; font-size: 12px;">
+                                        <span style="font-size: 20px; display: block; margin-bottom: 4px;">📦</span>
+                                        Drop CSV or <span style="color: #007bff; text-decoration: underline;">browse</span>
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div id="dcs-file-status" style="font-size: 11px; color: #666; margin-bottom: 8px;">
+                                    <span id="dcs-point-count">0</span> DCs loaded
+                                </div>
+
+                                <!-- Expandable Data Table -->
+                                <div>
+                                    <div id="dcs-table-toggle-input" style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;">
+                                        <span id="dcs-table-icon-input" style="font-size: 10px; color: #666;">&#9654;</span>
+                                        <span style="font-size: 11px; color: #666;">View Data Table</span>
+                                    </div>
+                                    <div id="dcs-table-container-input" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 4px;">
+                                        <table id="dcs-data-table-input" style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                            <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                                                <tr>
+                                                    <th style="padding: 6px; text-align: left; border-bottom: 1px solid #dee2e6;">#</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lat</th>
+                                                    <th style="padding: 6px; text-align: right; border-bottom: 1px solid #dee2e6;">Lng</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dcs-table-body-input"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            </div><!-- End 3-Column Layout -->
+
+                        </div>
                     </div>
 
                     <!-- Demand Clustering Tool (Collapsible) -->
@@ -535,12 +582,8 @@
                         <div id="clustering-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span id="clustering-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
+                                <img src="pictures/cluster.png" alt="Cluster" style="height: 24px; width: auto;">
                                 <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Demand Clustering Tool</h3>
-                            </div>
-                            <div id="clustering-header-buttons" style="display: flex; gap: 10px;">
-                                <button id="reset-clustering" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Reset</button>
-                                <button id="add-centroids-as-dcs" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Add Centroids</button>
-                                <button id="replace-dcs-with-centroids" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Replace DCs</button>
                             </div>
                         </div>
 
@@ -568,20 +611,12 @@
                                     Run Clustering
                                 </button>
 
-                                <!-- Divider -->
-                                <div style="width: 1px; height: 24px; background: #ddd;"></div>
-
-                                <!-- Toggle Clustered View -->
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                    <input type="checkbox" id="show-clustered-view" checked>
-                                    <span>Show Clustered View</span>
-                                </label>
-
-                                <!-- Show Centroid Lines -->
-                                <label id="centroid-lines-label" style="display: none; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                    <input type="checkbox" id="show-centroid-lines">
-                                    <span>Show Centroid Lines</span>
-                                </label>
+                                <!-- Clustering Action Buttons (hidden until clustering runs) -->
+                                <div id="clustering-action-buttons" style="display: none; align-items: center; gap: 10px; margin-left: auto;">
+                                    <button id="reset-clustering" style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Reset</button>
+                                    <button id="add-centroids-as-dcs" style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Add Centroids</button>
+                                    <button id="replace-dcs-with-centroids" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Replace DCs</button>
+                                </div>
                             </div>
 
                             <!-- Clustering Status/Info -->
@@ -589,12 +624,13 @@
                                 <!-- Will show clustering results info -->
                             </div>
 
-                            <!-- Clustering Map Section (hidden until Run Clustering) -->
-                            <div id="clustering-map-section" style="display: none; margin-top: 15px;">
-                                <!-- Map Display Toggles -->
-                                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 10px;">
+                            <!-- Embedded Clustering Map -->
+                            <div id="clustering-map-container" style="display: none; margin-top: 15px;">
+                                <!-- Map Visualization Controls -->
+                                <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 10px; padding: 10px 15px; background: #f8f9fa; border-radius: 4px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #64748b;">Visualization:</span>
                                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                        <input type="checkbox" id="show-voronoi-tiles" checked>
+                                        <input type="checkbox" id="show-voronoi" checked>
                                         <span>Voronoi Tiles</span>
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
@@ -602,30 +638,39 @@
                                         <span>Demand Points</span>
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #64748b;">
-                                        <input type="checkbox" id="show-cluster-links">
-                                        <span>Links to Centroids</span>
+                                        <input type="checkbox" id="show-centroid-links">
+                                        <span>Centroid Links</span>
                                     </label>
                                 </div>
-                                <!-- Clustering Map -->
+                                <!-- The Map -->
                                 <div id="clustering-map" style="width: 100%; height: 520px; border: 1px solid #ccc; border-radius: 8px; z-index: 1;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- New Scenario Creator -->
-                    <div style="background: white; padding: 20px 25px 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 850px;">
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Create New Scenario</h3>
-                            <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; color: #64748b;">
-                                <span>Preload:</span>
-                                <select id="preload-scenario-select" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-                                    <option value="">None</option>
-                                    <option value="baseline">0,5_Baseline_2028</option>
-                                </select>
-                            </label>
-                            <button id="reset-to-preloaded" style="display: none; padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
+                    <!-- New Scenario Creator (Collapsible) -->
+                    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <!-- Collapsible Header -->
+                        <div id="scenario-toggle" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; cursor: pointer; user-select: none;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="scenario-toggle-icon" style="font-size: 12px; color: #666;">&#9654;</span>
+                                <img src="pictures/scenario.png" alt="Scenario" style="height: 24px; width: auto;">
+                                <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Create New Scenario</h3>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; color: #64748b;" onclick="event.stopPropagation();">
+                                    <span>Preload:</span>
+                                    <select id="preload-scenario-select" onclick="event.stopPropagation();" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+                                        <option value="">None</option>
+                                        <option value="baseline">0,5_Baseline_2028</option>
+                                    </select>
+                                </label>
+                                <button id="reset-to-preloaded" onclick="event.stopPropagation();" style="display: none; padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
+                            </div>
                         </div>
 
+                        <!-- Collapsible Content -->
+                        <div id="scenario-content" style="display: none; padding: 0 20px 20px 20px;">
                         <!-- Run Controls -->
                         <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
                             <!-- Run Mode Selector -->
@@ -667,17 +712,17 @@
                         <div id="live-indicators" class="metrics-grid" style="grid-template-columns: repeat(8, 1fr); margin-bottom: 15px;">
                             <div class="metric-card">
                                 <div class="metric-label">Total Cost</div>
-                                <div class="metric-sublabel">(M USD)</div>
+                                <div class="metric-sublabel">(M IDR)</div>
                                 <div class="metric-value" id="live-total-cost">-</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Transport</div>
-                                <div class="metric-sublabel">(M USD)</div>
+                                <div class="metric-sublabel">(M IDR)</div>
                                 <div class="metric-value" id="live-transport-cost">-</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Storage</div>
-                                <div class="metric-sublabel">(M USD)</div>
+                                <div class="metric-sublabel">(M IDR)</div>
                                 <div class="metric-value" id="live-storage-cost">-</div>
                             </div>
                             <div class="metric-card">
@@ -692,11 +737,11 @@
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Unit CTS</div>
-                                <div class="metric-sublabel">(USD/Pallet)</div>
+                                <div class="metric-sublabel">(IDR/PCS)</div>
                                 <div class="metric-value" id="live-unit-cost">-</div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-label">DIO</div>
+                                <div class="metric-label">DOS</div>
                                 <div class="metric-sublabel">(days)</div>
                                 <div class="metric-value" id="live-dio">-</div>
                             </div>
@@ -736,19 +781,19 @@
                                 <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Parameters</h4>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">First Mile Rate ($/pallet/1,000km)</label>
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">First Mile Rate (IDR/PCS/1,000km)</label>
                                         <input type="number" id="new-first-mile-rate" value="5.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Last Mile Rate ($/pallet/1,000km)</label>
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Last Mile Rate (IDR/PCS/1,000km)</label>
                                         <input type="number" id="new-last-mile-rate" value="9.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Storage Rate ($/pallet/month)</label>
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Storage Rate (IDR/PCS/month)</label>
                                         <input type="number" id="new-storage-rate" value="0.30" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">DIO (days)</label>
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">DOS (days)</label>
                                         <input type="number" id="new-dio" value="30" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div style="grid-column: span 2;">
@@ -758,7 +803,7 @@
                                                 Min DC Size
                                             </label>
                                             <input type="number" id="new-min-dc-size" value="500" min="0" style="width: 90px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
-                                            <span style="font-size: 12px; color: #64748b;">pallets</span>
+                                            <span style="font-size: 12px; color: #64748b;">PCS</span>
                                         </div>
                                     </div>
                                 </div>
@@ -791,6 +836,7 @@
                                 <button id="collapse-all-scenarios" style="padding: 6px 14px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Collapse All</button>
                             </div>
                         </div>
+                        </div>
                     </div>
                     <div id="scenario-feed"></div>
                 </div>
@@ -818,7 +864,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #666;">Total Volume:</span>
-                                <strong><span id="demand-total-volume">0</span> pallets/month</strong>
+                                <strong><span id="demand-total-volume">0</span> PCS/month</strong>
                             </div>
                         </div>
 
@@ -845,7 +891,7 @@
                                                 Longitude <span class="sort-arrows" style="margin-left: 4px; color: #aaa;">↕</span>
                                             </th>
                                             <th class="sortable-header" data-sort="demand" style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6; cursor: pointer; user-select: none;">
-                                                Demand (pallets) <span class="sort-arrows" style="margin-left: 4px; color: #aaa;">↕</span>
+                                                Demand (PCS) <span class="sort-arrows" style="margin-left: 4px; color: #aaa;">↕</span>
                                             </th>
                                         </tr>
                                     </thead>
@@ -904,6 +950,231 @@
                         <div id="dc-csv-success" style="color: #2e7d32; margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 4px; display: none;"></div>
                     </div>
                 </div>
+
+                <!-- Info Tab -->
+                <div class="tab-content" id="info-tab">
+                    <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+                        <h2 style="font-size: 24px; font-weight: 600; color: var(--text-dark); margin-bottom: 20px;">Model Documentation</h2>
+                        <p style="color: #666; margin-bottom: 30px;">This page documents all assumptions, parameters, and mathematical formulas used in the distribution network optimization model.</p>
+
+                        <!-- Default Parameters Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin: 0;">Default Parameters</h3>
+                                <button id="edit-default-params-btn" style="padding: 8px 16px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">Edit</button>
+                            </div>
+
+                            <!-- Display Mode -->
+                            <div id="params-display-mode">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Parameter</th>
+                                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Value</th>
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Unit</th>
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">5.60</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">9.60</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">0.30</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td id="display-dio" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">30</td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td id="display-wacc" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">10</td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport Speed</td><td id="display-transport-speed" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">500</td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average delivery speed for lead time</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">NSV per Piece</td><td id="display-nsv" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">300</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Net Sales Value per unit</td></tr>
+                                        <tr><td style="padding: 10px;">Earth Radius</td><td style="padding: 10px; text-align: right;">6,371</td><td style="padding: 10px;">km</td><td style="padding: 10px;">Used in Haversine formula (constant)</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Edit Mode -->
+                            <div id="params-edit-mode" style="display: none;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                    <thead>
+                                        <tr style="background: #f8f9fa;">
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Parameter</th>
+                                            <th style="padding: 12px; text-align: right; border-bottom: 2px solid #dee2e6;">Value</th>
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Unit</th>
+                                            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-storage" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-dio" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-wacc" step="0.1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport Speed</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-transport-speed" step="10" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/day</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average delivery speed for lead time</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">NSV per Piece</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-nsv" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Net Sales Value per unit</td></tr>
+                                        <tr><td style="padding: 10px;">Earth Radius</td><td style="padding: 10px; text-align: right;">6,371</td><td style="padding: 10px;">km</td><td style="padding: 10px;">Used in Haversine formula (constant)</td></tr>
+                                    </tbody>
+                                </table>
+                                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button id="cancel-params-btn" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Cancel</button>
+                                    <button id="save-params-btn" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distance Formula Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Distance Calculation (Haversine Formula)</h3>
+                            <p style="color: #666; margin-bottom: 15px;">The great-circle distance between two points on a sphere is calculated using:</p>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                                <p style="font-size: 16px; margin-bottom: 10px;">$$a = \sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1) \cdot \cos(\phi_2) \cdot \sin^2\left(\frac{\Delta\lambda}{2}\right)$$</p>
+                                <p style="font-size: 16px;">$$d = 2R \cdot \arctan2\left(\sqrt{a}, \sqrt{1-a}\right)$$</p>
+                            </div>
+                            <p style="color: #666; font-size: 13px;"><strong>Where:</strong> $\phi$ = latitude, $\lambda$ = longitude, $R$ = 6,371 km (Earth's radius)</p>
+                            <div style="background: #fff3cd; padding: 12px; border-radius: 4px; margin-top: 15px;">
+                                <strong>Sea Crossing Penalty:</strong> Routes between Sumatra (lng &lt; 106°) and Java (lng &gt; 106°) incur a 30% distance penalty (×1.3) to account for ferry crossings.
+                            </div>
+                        </div>
+
+                        <!-- Cost Formulas Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Cost Formulas</h3>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">First Mile Cost (Annual)</h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <p>$$C_{FM} = \sum_{dc \in \text{ActiveDCs}} d(\text{factory}, dc) \times \text{throughput}_{dc} \times \text{rate}_{FM} \times \frac{12}{1000}$$</p>
+                            </div>
+                            <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                                <strong>Example:</strong> A DC receives 10,000 PCS/month and is 500 km from the factory.<br>
+                                $C_{FM} = 500 \times 10{,}000 \times 5.60 \times \frac{12}{1000} = 336{,}000$ IDR/year
+                            </div>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Last Mile Cost (Annual)</h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <p>$$C_{LM} = \sum_{p \in \text{DemandPoints}} d(dc_p, p) \times \text{demand}_p \times \text{rate}_{LM} \times \frac{12}{1000}$$</p>
+                            </div>
+                            <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                                <strong>Example:</strong> A customer with 2,000 PCS/month demand is 100 km from its assigned DC.<br>
+                                $C_{LM} = 100 \times 2{,}000 \times 9.60 \times \frac{12}{1000} = 23{,}040$ IDR/year
+                            </div>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Storage Cost (Annual)</h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <p>$$C_{Storage} = \sum_{dc \in \text{ActiveDCs}} \left(\frac{\text{Throughput}_{dc} \times DOS}{365}\right) \times \text{rate}_{storage} \times 12$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where Throughput is annual (PCS/year)</p>
+                            </div>
+                            <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                                <strong>Example:</strong> A DC handles 10,000,000 PCS/year with DOS = 30 days.<br>
+                                Average inventory $= \frac{10{,}000{,}000 \times 30}{365} = 821{,}918$ PCS<br>
+                                $C_{Storage} = 821{,}918 \times 0.30 \times 12 = 2{,}958{,}905$ IDR/year
+                            </div>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Total Cost</h4>
+                            <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center;">
+                                <p style="font-size: 18px;">$$C_{Total} = C_{FM} + C_{LM} + C_{Storage}$$</p>
+                            </div>
+                            <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                                <strong>Example:</strong> Using the examples above for a single DC with one customer:<br>
+                                $C_{Total} = 336{,}000 + 23{,}040 + 2{,}958{,}905 = 3{,}317{,}945$ IDR/year
+                            </div>
+                        </div>
+
+                        <!-- Financial Metrics Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Financial Metrics</h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">NSV (Net Sales Value - Annual)</h4>
+                                    <p style="text-align: center;">$$NSV = \sum \text{demand} \times 12 \times 300$$</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">Cost to NSV Ratio</h4>
+                                    <p style="text-align: center;">$$\text{Ratio} = \frac{C_{Total}}{NSV} \times 100\%$$</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">Unit Cost to Serve</h4>
+                                    <p style="text-align: center;">$$\text{UnitCTS} = \frac{C_{Total}}{\sum \text{demand}}$$</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">Total Stock</h4>
+                                    <p style="text-align: center;">$$\text{Stock} = \sum_{dc} \frac{DOS \times \text{Throughput}_{dc}}{365}$$</p>
+                                    <p style="font-size: 11px; color: #666; text-align: center;">where Throughput is annual (PCS/year)</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">IOC (Inventory Carrying Cost)</h4>
+                                    <p style="text-align: center;">$$IOC = \text{Stock} \times NSV_{piece} \times WACC$$</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 10px;">Average Lead Time</h4>
+                                    <p style="text-align: center;">$$\text{LeadTime} = \frac{1}{n}\sum_{p} \frac{\text{distance}_p}{500}$$</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clustering Algorithms Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Clustering Algorithms</h3>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 15px 0 10px 0;">Weighted K-Means</h4>
+                            <p style="color: #666; margin-bottom: 10px;">Centroids are calculated as the demand-weighted average of cluster points:</p>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                                <p>$$\bar{x}_k = \frac{\sum_{i \in C_k} \text{demand}_i \times x_i}{\sum_{i \in C_k} \text{demand}_i}$$</p>
+                            </div>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 15px 0 10px 0;">K-Means++ Initialization</h4>
+                            <p style="color: #666; margin-bottom: 10px;">Initial centroids are selected with probability proportional to squared distance and demand:</p>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                                <p>$$P(x_i) \propto D(x_i)^2 \times \text{demand}_i$$</p>
+                            </div>
+
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 15px 0 10px 0;">Weighted K-Medoids (PAM)</h4>
+                            <p style="color: #666;">Similar to K-Means but centroids are restricted to actual data points (medoids). The swap step minimizes the total weighted distance within each cluster.</p>
+                        </div>
+
+                        <!-- Key Assumptions Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Key Assumptions</h3>
+                            <ul style="color: #666; line-height: 1.8; padding-left: 20px;">
+                                <li><strong>Demand Fulfillment:</strong> All demand must be fulfilled - no service level constraints on maximum distance</li>
+                                <li><strong>Factory SLA:</strong> Distribution centers must be within 4,000 km of the nearest active factory</li>
+                                <li><strong>Cost Annualization:</strong> Monthly demand is multiplied by 12 for annual cost calculations</li>
+                                <li><strong>Inventory Valuation:</strong> Inventory is valued at Net Sales Value (300 IDR/piece)</li>
+                                <li><strong>Single Product:</strong> Model assumes a single FMCG product type</li>
+                                <li><strong>Customer Assignment:</strong> Each customer is assigned to the nearest active DC (greedy nearest-neighbor)</li>
+                                <li><strong>DC Throughput:</strong> No capacity constraints on DCs - throughput equals sum of assigned demand</li>
+                                <li><strong>Transport Mode:</strong> Single transport mode with constant speed (500 km/day)</li>
+                            </ul>
+                        </div>
+
+                        <!-- Optimization Methods Section -->
+                        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600; color: var(--cel-blue); margin-bottom: 15px;">Optimization Methods</h3>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px;">Heuristic</h4>
+                                    <p style="color: #666; font-size: 13px;">Activates all DCs within SLA, then iteratively closes DCs if total cost improves. Fast but may find local optima.</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px;">Greedy</h4>
+                                    <p style="color: #666; font-size: 13px;">Starts with all DCs active, iteratively removes the DC that most reduces cost until no improvement is possible.</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px;">HiGHS Solver</h4>
+                                    <p style="color: #666; font-size: 13px;">Mixed-integer linear programming solver that finds globally optimal DC selection given the cost model.</p>
+                                </div>
+
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                                    <h4 style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 10px;">GLPK Solver</h4>
+                                    <p style="color: #666; font-size: 13px;">Alternative MIP solver using the GNU Linear Programming Kit for optimization.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -936,19 +1207,31 @@
                             renderMapMarkers(mapAnalytics2, markersAnalytics2, scenario2.dcLocations, scenario2.demandPoints, false);
                         }
                     }, 100);
+                } else if (tabName === 'info') {
+                    // Render LaTeX formulas with KaTeX
+                    setTimeout(() => {
+                        if (typeof renderMathInElement === 'function') {
+                            renderMathInElement(document.getElementById('info-tab'), {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false}
+                                ],
+                                throwOnError: false
+                            });
+                        }
+                    }, 100);
                 }
             });
         });
 
-        // Settings toggle
-        document.getElementById('settings-toggle').addEventListener('click', () => {
-            const content = document.getElementById('settings-content');
-            const icon = document.getElementById('toggle-icon');
-            content.classList.toggle('expanded');
-            icon.textContent = content.classList.contains('expanded') ? '▲' : '▼';
-        });
-
         // JavaScript code here
+
+        // ===== DEFAULT PARAMETERS =====
+        const DEFAULT_FIRST_MILE_RATE = 5.60;  // IDR/PCS/1,000km
+        const DEFAULT_LAST_MILE_RATE = 9.60;   // IDR/PCS/1,000km
+        const DEFAULT_STORAGE_RATE = 0.30;     // IDR/PCS/month
+        const DEFAULT_DIO = 30;                // DOS (Days of Stock)
+
         // ===== LEAFLET MAP INFRASTRUCTURE =====
 
         // Indonesia map center and bounds
@@ -960,15 +1243,12 @@
         let mapAnalytics2 = null;
         let mapNewScenario = null;
         let mapReference = null;
-        let mapClustering = null;
 
         // Marker layer groups (for easy clearing/updating)
         let markersAnalytics1 = null;
         let markersAnalytics2 = null;
         let markersNewScenario = null;
         let markersReference = null;
-        let markersClustering = null;
-        let voronoiLayer = null;
 
         // Pending click location for popup
         let pendingClickLocation = null;
@@ -1036,16 +1316,18 @@
             });
         }
 
-        // Centroid icon (triangle) with cluster color
+        // Centroid icon (triangle) with cluster color and uniform white outline using SVG
         function createCentroidIcon(centroid, clusterIndex, clusterColor) {
-            const size = 16;
+            const size = 18;
             return L.divIcon({
                 className: 'centroid-icon',
-                html: `<div style="position: relative; width: ${size}px; height: ${size + 14}px; display: flex; flex-direction: column; align-items: center;">
-                    <div style="width: 0; height: 0; border-left: ${size/2}px solid transparent; border-right: ${size/2}px solid transparent; border-bottom: ${size}px solid ${clusterColor}; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));"></div>
-                    <span style="color: ${clusterColor}; font-size: 9px; font-weight: bold; white-space: nowrap; text-shadow: 0 0 2px white, 0 0 2px white; margin-top: 2px;">C${clusterIndex + 1}</span>
+                html: `<div style="display: flex; flex-direction: column; align-items: center;">
+                    <svg width="${size}" height="${size}" viewBox="0 0 20 20" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));">
+                        <polygon points="10,2 18,18 2,18" fill="${clusterColor}" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="color: ${clusterColor}; font-size: 9px; font-weight: bold; white-space: nowrap; text-shadow: 0 0 2px white, 0 0 2px white; margin-top: 1px;">C${clusterIndex + 1}</span>
                 </div>`,
-                iconSize: [size, size + 14],
+                iconSize: [size, size + 12],
                 iconAnchor: [size/2, size]
             });
         }
@@ -1065,7 +1347,7 @@
                 const marker = L.marker([point.lat, point.lng], { icon: icon });
                 marker.bindPopup(`
                     <b>Demand Point</b><br>
-                    Demand: ${point.demand.toLocaleString()} pallets<br>
+                    Demand: ${point.demand.toLocaleString()} pieces<br>
                     Cluster: ${clusterIdx + 1}
                 `);
                 markersLayer.addLayer(marker);
@@ -1095,7 +1377,7 @@
                 marker.bindPopup(`
                     <b>Cluster ${i + 1} Centroid</b><br>
                     Points: ${clusterSize}<br>
-                    Total Demand: ${clusterDemand.toLocaleString()} pallets<br>
+                    Total Demand: ${clusterDemand.toLocaleString()} pieces<br>
                     Lat: ${centroid.lat.toFixed(4)}<br>
                     Lng: ${centroid.lng.toFixed(4)}
                     ${centroid.isMedoid ? '<br><i>(Medoid - actual demand location)</i>' : ''}
@@ -1112,112 +1394,142 @@
             });
         }
 
-        // Create Voronoi polygons from centroids
+        // Clustering map instance
+        let clusteringMap = null;
+        let clusteringMarkersLayer = null;
+        let voronoiLayer = null;
+
+        // Create Voronoi polygons using d3-delaunay
         function createVoronoiPolygons(centroids, bounds) {
             if (!centroids || centroids.length < 2) return [];
 
-            // Convert centroids to points array [lng, lat] for d3-delaunay
+            // Convert centroids to points array for Delaunay
             const points = centroids.map(c => [c.lng, c.lat]);
 
-            // Create Delaunay triangulation and Voronoi diagram
+            // Create Delaunay triangulation
             const delaunay = d3.Delaunay.from(points);
-            const voronoi = delaunay.voronoi([bounds.west, bounds.south, bounds.east, bounds.north]);
 
-            // Extract polygons for each centroid
+            // Create Voronoi diagram with bounds
+            const voronoi = delaunay.voronoi([
+                bounds.west, bounds.south, bounds.east, bounds.north
+            ]);
+
+            // Extract cell polygons
             const polygons = [];
             for (let i = 0; i < centroids.length; i++) {
-                const cellPolygon = voronoi.cellPolygon(i);
-                if (cellPolygon) {
+                const cell = voronoi.cellPolygon(i);
+                if (cell) {
                     // Convert [lng, lat] back to [lat, lng] for Leaflet
-                    const latLngs = cellPolygon.map(p => [p[1], p[0]]);
+                    const latLngs = cell.map(pt => [pt[1], pt[0]]);
                     polygons.push({
-                        index: i,
                         latLngs: latLngs,
-                        centroid: centroids[i]
+                        centroidIndex: i
                     });
                 }
             }
+
             return polygons;
         }
 
-        // Render clustering map with Voronoi tiles, demand points, and links
-        function renderClusteringMap(options = {}) {
-            if (!mapClustering || !markersClustering || !currentClusteringResult) return;
+        // Render the embedded clustering map
+        function renderClusteringMap() {
+            if (!currentClusteringResult) return;
 
-            const { showVoronoi = true, showDemandPoints = true, showLinks = false } = options;
-            const { centroids, assignments } = currentClusteringResult;
+            const container = document.getElementById('clustering-map-container');
+            const mapDiv = document.getElementById('clustering-map');
+            if (!container || !mapDiv) return;
 
-            // Clear existing layers
-            markersClustering.clearLayers();
-            if (voronoiLayer) {
-                mapClustering.removeLayer(voronoiLayer);
-                voronoiLayer = null;
+            // Show the container
+            container.style.display = 'block';
+
+            // Initialize map if not already done
+            if (!clusteringMap) {
+                clusteringMap = L.map('clustering-map', {
+                    center: INDONESIA_CENTER,
+                    zoom: INDONESIA_ZOOM,
+                    zoomControl: true
+                });
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap © CARTO',
+                    maxZoom: 18
+                }).addTo(clusteringMap);
+
+                clusteringMarkersLayer = L.layerGroup().addTo(clusteringMap);
+                voronoiLayer = L.layerGroup().addTo(clusteringMap);
             }
 
-            // Add Voronoi tiles
-            if (showVoronoi && centroids.length >= 2) {
-                const bounds = {
-                    west: 90,
-                    east: 145,
-                    south: -15,
-                    north: 10
-                };
-                const voronoiPolygons = createVoronoiPolygons(centroids, bounds);
-                voronoiLayer = L.layerGroup();
+            // Clear existing layers
+            clusteringMarkersLayer.clearLayers();
+            voronoiLayer.clearLayers();
 
-                voronoiPolygons.forEach(poly => {
-                    const color = clusterColors[poly.index];
+            const { centroids, assignments } = currentClusteringResult;
+            const showVoronoi = document.getElementById('show-voronoi').checked;
+            const showDemandPoints = document.getElementById('show-demand-points').checked;
+            const showLinks = document.getElementById('show-centroid-links').checked;
+
+            // Calculate bounds for Voronoi
+            const allPoints = [...newScenarioDemands, ...centroids];
+            const lats = allPoints.map(p => p.lat);
+            const lngs = allPoints.map(p => p.lng);
+            const bounds = {
+                north: Math.max(...lats) + 2,
+                south: Math.min(...lats) - 2,
+                east: Math.max(...lngs) + 2,
+                west: Math.min(...lngs) - 2
+            };
+
+            // Draw Voronoi tiles
+            if (showVoronoi && centroids.length >= 2) {
+                const polygons = createVoronoiPolygons(centroids, bounds);
+                polygons.forEach(poly => {
+                    const color = clusterColors[poly.centroidIndex];
                     const polygon = L.polygon(poly.latLngs, {
                         color: color,
                         weight: 2,
                         fillColor: color,
-                        fillOpacity: 0.15,
-                        opacity: 0.6
+                        fillOpacity: 0.15
                     });
-
-                    const clusterDemand = newScenarioDemands
-                        .filter((_, j) => assignments[j] === poly.index)
-                        .reduce((sum, p) => sum + p.demand, 0);
-                    const clusterSize = newScenarioDemands.filter((_, j) => assignments[j] === poly.index).length;
-
-                    polygon.bindPopup(`
-                        <b>Cluster ${poly.index + 1}</b><br>
-                        Points: ${clusterSize}<br>
-                        Total Demand: ${clusterDemand.toLocaleString()} pallets
-                    `);
                     voronoiLayer.addLayer(polygon);
                 });
-
-                voronoiLayer.addTo(mapClustering);
             }
 
-            // Add demand points
+            // Draw demand points
             if (showDemandPoints) {
                 newScenarioDemands.forEach((point, i) => {
                     const clusterIdx = assignments[i];
                     const color = clusterColors[clusterIdx];
-                    const icon = createClusteredDemandIcon(point, color);
-                    const marker = L.marker([point.lat, point.lng], { icon: icon });
-                    marker.bindPopup(`
+
+                    const circle = L.circleMarker([point.lat, point.lng], {
+                        radius: 4,
+                        fillColor: color,
+                        color: color,
+                        weight: 1,
+                        opacity: 0.8,
+                        fillOpacity: 0.6
+                    });
+
+                    circle.bindPopup(`
                         <b>Demand Point</b><br>
-                        Demand: ${point.demand.toLocaleString()} pallets<br>
+                        Demand: ${point.demand.toLocaleString()} pieces<br>
                         Cluster: ${clusterIdx + 1}
                     `);
-                    markersClustering.addLayer(marker);
 
-                    // Draw line to centroid if enabled
+                    clusteringMarkersLayer.addLayer(circle);
+
+                    // Draw link to centroid if enabled
                     if (showLinks && centroids[clusterIdx]) {
                         const centroid = centroids[clusterIdx];
                         const line = L.polyline(
                             [[point.lat, point.lng], [centroid.lat, centroid.lng]],
-                            { color: color, weight: 1, opacity: 0.4 }
+                            { color: color, weight: 1, opacity: 0.3 }
                         );
-                        markersClustering.addLayer(line);
+                        clusteringMarkersLayer.addLayer(line);
                     }
                 });
             }
 
-            // Add centroids as triangles
+            // Draw centroids as triangles
             centroids.forEach((centroid, i) => {
                 const color = clusterColors[i];
                 const icon = createCentroidIcon(centroid, i, color);
@@ -1231,21 +1543,24 @@
                 marker.bindPopup(`
                     <b>Cluster ${i + 1} Centroid</b><br>
                     Points: ${clusterSize}<br>
-                    Total Demand: ${clusterDemand.toLocaleString()} pallets<br>
+                    Total Demand: ${clusterDemand.toLocaleString()} pieces<br>
                     Lat: ${centroid.lat.toFixed(4)}<br>
                     Lng: ${centroid.lng.toFixed(4)}
-                    ${centroid.isMedoid ? '<br><i>(Medoid - actual demand location)</i>' : ''}
                 `);
-                markersClustering.addLayer(marker);
+
+                clusteringMarkersLayer.addLayer(marker);
             });
 
-            // Show factories
-            factories.forEach(f => {
-                const icon = createFactoryIcon(f, f.active);
-                const marker = L.marker([f.lat, f.lng], { icon: icon });
-                marker.bindPopup(`<b>${f.name || 'Factory'}</b><br>Status: ${f.active ? 'Active' : 'Inactive'}`);
-                markersClustering.addLayer(marker);
-            });
+            // Fit map to bounds
+            clusteringMap.fitBounds([
+                [bounds.south + 2, bounds.west + 2],
+                [bounds.north - 2, bounds.east - 2]
+            ]);
+
+            // Force map resize
+            setTimeout(() => {
+                clusteringMap.invalidateSize();
+            }, 100);
         }
 
         // Initialize a Leaflet map
@@ -1378,7 +1693,7 @@
                     <div id="${popupId}">
                         <b>${dc.name}</b><br>
                         Status: ${statusText}<br>
-                        Throughput: ${throughput.toLocaleString()} pallets
+                        Throughput: ${throughput.toLocaleString()} pieces
                         ${interactive ? `
                             <div style="margin-top: 10px; display: flex; gap: 8px;">
                                 <button onclick="window.toggleDCFromPopup('${dc.id}')" style="padding: 4px 10px; background: ${dc.active ? '#ffc107' : '#28a745'}; color: ${dc.active ? '#000' : '#fff'}; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
@@ -1406,7 +1721,7 @@
                     opacity: 0.8,
                     fillOpacity: 0.7
                 });
-                circle.bindPopup(`Demand: ${point.demand.toLocaleString()} pallets<br>Cluster: ${point.cluster}`);
+                circle.bindPopup(`Demand: ${point.demand.toLocaleString()} pieces<br>Cluster: ${point.cluster}`);
                 markersLayer.addLayer(circle);
             });
 
@@ -1428,7 +1743,7 @@
                         <b>First Mile</b><br>
                         <b>Origin:</b> ${nearestFactory.name}<br>
                         <b>Destination:</b> ${dc.name}<br>
-                        <b>Volume:</b> ${throughput.toLocaleString()} pallets/month
+                        <b>Volume:</b> ${throughput.toLocaleString()} PCS/month
                     `);
                     markersLayer.addLayer(line);
                 }
@@ -1450,7 +1765,7 @@
                         <b>Last Mile</b><br>
                         <b>Origin:</b> ${assignedDC.name}<br>
                         <b>Destination:</b> Cluster ${point.cluster}<br>
-                        <b>Volume:</b> ${point.demand.toLocaleString()} pallets/month
+                        <b>Volume:</b> ${point.demand.toLocaleString()} PCS/month
                     `);
                     markersLayer.addLayer(line);
                 }
@@ -1473,20 +1788,7 @@
 
         // Data structures - Indonesia coordinates (lat/lng)
         let demandPoints = [];
-        let dcLocations = [
-            {id: 'DC1', name: 'Medan Hub', lat: 3.5952, lng: 98.6722, active: true},
-            {id: 'DC2', name: 'Pekanbaru Hub', lat: 0.5071, lng: 101.4478, active: false},
-            {id: 'DC3', name: 'Palembang Hub', lat: -2.9761, lng: 104.7754, active: true},
-            {id: 'DC4', name: 'Lampung Hub', lat: -5.4294, lng: 105.2610, active: false},
-            {id: 'DC5', name: 'Jakarta Hub', lat: -6.2088, lng: 106.8456, active: true},
-            {id: 'DC6', name: 'Bandung Hub', lat: -6.9175, lng: 107.6191, active: false},
-            {id: 'DC7', name: 'Semarang Hub', lat: -6.9666, lng: 110.4196, active: true},
-            {id: 'DC8', name: 'Yogyakarta Hub', lat: -7.7956, lng: 110.3695, active: false},
-            {id: 'DC9', name: 'Surabaya Hub', lat: -7.2575, lng: 112.7521, active: true},
-            {id: 'DC10', name: 'Malang Hub', lat: -7.9666, lng: 112.6326, active: false},
-            {id: 'DC11', name: 'Padang Hub', lat: -0.9471, lng: 100.4172, active: false},
-            {id: 'DC12', name: 'Jambi Hub', lat: -1.6101, lng: 103.6131, active: false}
-        ];
+        let dcLocations = [];
         let factories = [
             {id: 'F1', name: 'Jatake, Tangerang', lat: -6.1897, lng: 106.5108, active: true}
         ];
@@ -1501,53 +1803,43 @@
         };
         let scenario2 = null;
 
-        // Seeded random number generator for consistent demand generation
-        function seededRandom(seed) {
-            let state = seed;
-            return function() {
-                state = (state * 9301 + 49297) % 233280;
-                return state / 233280;
-            };
-        }
+        // No default data - user uploads via Data Input container
 
-        // Generate demand points - Indonesia coordinates
-        // Target: ~350k pallets/month (50x scale for realistic unit costs)
-        function generateDemandPoints() {
-            demandPoints = [];
-            const random = seededRandom(12345); // Fixed seed for consistent results
-            // Clusters around major Indonesian cities
-            const clusters = [
-                // Cluster A: Greater Jakarta area (West Java)
-                {center: {lat: -6.2088, lng: 106.8456}, spread: 0.5, count: 25, demandRange: [1600, 4500], id: 'A'},
-                // Cluster B: Surabaya / East Java
-                {center: {lat: -7.2575, lng: 112.7521}, spread: 0.6, count: 20, demandRange: [3650, 7700], id: 'B'},
-                // Cluster C: Bandung / West Java
-                {center: {lat: -6.9175, lng: 107.6191}, spread: 0.4, count: 20, demandRange: [1600, 3650], id: 'C'},
-                // Cluster D: Medan / North Sumatra
-                {center: {lat: 3.5952, lng: 98.6722}, spread: 0.5, count: 15, demandRange: [2000, 4650], id: 'D'},
-                // Cluster E: Semarang / Central Java
-                {center: {lat: -6.9666, lng: 110.4196}, spread: 0.4, count: 12, demandRange: [2650, 6300], id: 'E'}
-            ];
-            clusters.forEach(cluster => {
-                for (let i = 0; i < cluster.count; i++) {
-                    const lat = cluster.center.lat + (random() - 0.5) * cluster.spread;
-                    const lng = cluster.center.lng + (random() - 0.5) * cluster.spread;
-                    const demand = Math.floor(random() * (cluster.demandRange[1] - cluster.demandRange[0]) + cluster.demandRange[0]);
-                    demandPoints.push({lat, lng, demand, cluster: cluster.id, assignedDC: null, distance: 0});
-                }
-            });
-            // Scattered points across Sumatra and Java
-            const scatteredAreas = [
-                {latMin: -8, latMax: -6, lngMin: 105, lngMax: 114}, // Java
-                {latMin: -3, latMax: 4, lngMin: 98, lngMax: 105}    // Sumatra
-            ];
-            for (let i = 0; i < 12; i++) {
-                const area = scatteredAreas[i < 8 ? 0 : 1]; // More in Java
-                const lat = area.latMin + random() * (area.latMax - area.latMin);
-                const lng = area.lngMin + random() * (area.lngMax - area.lngMin);
-                const demand = Math.floor(random() * 1600 + 800);
-                demandPoints.push({lat, lng, demand, cluster: 'scattered', assignedDC: null, distance: 0});
+        // Parse DC data from CSV (lat, lng only - generates names)
+        function parseDCsCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) {
+                throw new Error('CSV must have header row and at least one data row');
             }
+
+            const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+            const latIdx = header.indexOf('lat');
+            const lngIdx = header.indexOf('lng');
+
+            if (latIdx === -1 || lngIdx === -1) {
+                throw new Error('CSV must have columns: lat, lng');
+            }
+
+            const dcs = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = line.split(',').map(v => v.trim());
+                const lat = parseFloat(values[latIdx]);
+                const lng = parseFloat(values[lngIdx]);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    dcs.push({
+                        id: `DC${i}`,
+                        name: `DC${i}`,
+                        lat: lat,
+                        lng: lng,
+                        active: false
+                    });
+                }
+            }
+            return dcs;
         }
 
         // Parse demand data from CSV
@@ -2076,10 +2368,10 @@
             const activeDCs = dcLocations.filter(dc => dc.active);
             let totalTransport = 0;
             let totalStorage = 0;
-            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value) / 1000;
-            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value) / 1000;
-            const storageRate = parseFloat(document.getElementById('storage-rate').value);
-            const dio = parseInt(document.getElementById('dio').value);
+            const firstMileRate = DEFAULT_FIRST_MILE_RATE / 1000;
+            const lastMileRate = DEFAULT_LAST_MILE_RATE / 1000;
+            const storageRate = DEFAULT_STORAGE_RATE;
+            const dio = DEFAULT_DIO;
             const minDCSizeEnabled = document.getElementById('new-min-dc-size-enabled')?.checked || false;
             const minDCSize = parseInt(document.getElementById('new-min-dc-size')?.value || 500);
 
@@ -2278,10 +2570,10 @@
 
         // HiGHS optimization
         async function optimizeWithHiGHS(targetDCs = dcLocations, targetDemands = demandPoints) {
-            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
-            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
-            const storageRate = parseFloat(document.getElementById('storage-rate').value);
-            const dio = parseInt(document.getElementById('dio').value);
+            const firstMileRate = DEFAULT_FIRST_MILE_RATE;
+            const lastMileRate = DEFAULT_LAST_MILE_RATE;
+            const storageRate = DEFAULT_STORAGE_RATE;
+            const dio = DEFAULT_DIO;
 
             try {
                 const solver = await initHiGHS();
@@ -2376,10 +2668,10 @@
 
         // GLPK optimization
         async function optimizeWithGLPK(targetDCs = dcLocations, targetDemands = demandPoints) {
-            const firstMileRate = parseFloat(document.getElementById('first-mile-rate').value);
-            const lastMileRate = parseFloat(document.getElementById('last-mile-rate').value);
-            const storageRate = parseFloat(document.getElementById('storage-rate').value);
-            const dio = parseInt(document.getElementById('dio').value);
+            const firstMileRate = DEFAULT_FIRST_MILE_RATE;
+            const lastMileRate = DEFAULT_LAST_MILE_RATE;
+            const storageRate = DEFAULT_STORAGE_RATE;
+            const dio = DEFAULT_DIO;
 
             try {
                 const glpk = await initGLPK();
@@ -2529,10 +2821,10 @@
             let totalStorage = 0;
 
             // Use provided params or get from settings inputs
-            const firstMileRate = (params?.firstMile || parseFloat(document.getElementById('first-mile-rate').value)) / 1000;
-            const lastMileRate = (params?.lastMile || parseFloat(document.getElementById('last-mile-rate').value)) / 1000;
-            const storageRate = params?.storage || parseFloat(document.getElementById('storage-rate').value);
-            const dio = params?.dio || parseInt(document.getElementById('dio').value);
+            const firstMileRate = (params?.firstMile || DEFAULT_FIRST_MILE_RATE) / 1000;
+            const lastMileRate = (params?.lastMile || DEFAULT_LAST_MILE_RATE) / 1000;
+            const storageRate = params?.storage || DEFAULT_STORAGE_RATE;
+            const dio = params?.dio || DEFAULT_DIO;
             const minDCSizeEnabled = params?.minDCSizeEnabled !== undefined ? params.minDCSizeEnabled : document.getElementById('new-min-dc-size-enabled')?.checked;
             const minDCSize = params?.minDCSize !== undefined ? params.minDCSize : parseInt(document.getElementById('new-min-dc-size')?.value || 500);
 
@@ -2570,9 +2862,7 @@
             const totalDemand = demands.reduce((sum, p) => sum + p.demand, 0);
 
             // FMCG Product Structure:
-            // 1 pallet = 60 cartons × 50 pieces = 3,000 pieces
-            // NSV per piece = $0.10
-            // NSV per pallet = 3,000 × $0.10 = $300
+            // NSV per piece = IDR 300
             const nsvPerPallet = 300;
             // NSV is annual (monthly demand × 12 months)
             const nsv = totalDemand * 12 * nsvPerPallet;
@@ -2584,8 +2874,7 @@
             // Calculate lead time as simple average of lead time to all customers (distance / 500 km/day)
             const avgLeadTime = demands.reduce((sum, p) => sum + ((p.distance || 0) / 500), 0) / demands.length;
 
-            // Calculate total stock: sum for each DC of (DIO * annual output quantity)/365
-            // Annual output = monthly demand * 12
+            // Calculate total stock: sum for each DC of (DOS * annual throughput)/365
             let totalStock = 0;
             activeDCs.forEach(dc => {
                 const monthlyThroughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
@@ -2593,11 +2882,11 @@
                 totalStock += (dio * annualThroughput) / 365;
             });
 
-            // Calculate DIO - should equal the input DIO parameter
-            const calculatedDIO = dio;
+            // Calculate DOS - should equal the input DOS parameter
+            const calculatedDOS = dio;
 
             // Calculate IOC: average inventory value * WACC (10%)
-            // Average inventory value = total stock (pallets) * NSV per pallet
+            // Average inventory value = total stock (pieces) * NSV per piece
             const avgInventoryValue = totalStock * nsvPerPallet;
             const ioc = avgInventoryValue * 0.10;
 
@@ -2614,7 +2903,7 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Net Sales Value</div>
-                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-sublabel">(M IDR)</div>
                     <div class="metric-value">${(nsv / 1000000).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
                 </div>
                 <div class="metric-card">
@@ -2625,23 +2914,23 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Cost-to-Serve</div>
-                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-sublabel">(M IDR)</div>
                     <div class="metric-value">${(costs.total / 1000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Unit CTS</div>
-                    <div class="metric-sublabel">(USD/Pallet)</div>
+                    <div class="metric-sublabel">(IDR/PCS)</div>
                     <div class="metric-value">${Math.round(unitCostToServe).toLocaleString()}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">IOC</div>
-                    <div class="metric-sublabel">(M USD)</div>
+                    <div class="metric-sublabel">(M IDR)</div>
                     <div class="metric-value">${(ioc / 1000000).toFixed(1)}</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">DIO</div>
+                    <div class="metric-label">DOS</div>
                     <div class="metric-sublabel">(days)</div>
-                    <div class="metric-value">${calculatedDIO.toFixed(0)}</div>
+                    <div class="metric-value">${calculatedDOS.toFixed(0)}</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-label">Lead Time</div>
@@ -2738,7 +3027,7 @@
             absCtx.fillRect(50 + (barWidth + spacing) * 2, baseY - costs.total / maxCost * chartHeight, barWidth, costs.total / maxCost * chartHeight);
             absCtx.fillText(Math.round(costs.total / 1000) + 'M', 90 + (barWidth + spacing) * 2, baseY - costs.total / maxCost * chartHeight - 5);
 
-            // Relative chart (cost per pallet)
+            // Relative chart (cost per piece)
             const relativeCanvas = document.getElementById('relative-chart');
             const relCtx = relativeCanvas.getContext('2d');
             relCtx.clearRect(0, 0, relativeCanvas.width, relativeCanvas.height);
@@ -2773,21 +3062,16 @@
             relCtx.fillText(Math.round(total_per_pallet), 90 + (barWidth + spacing) * 2, baseY - total_height_rel - 5);
         }
 
-        // Initialize
-        generateDemandPoints();
-        assignCustomers();
-        updateDemandSummary();
-        updateFactorySummary();
-        updateDCSummary();
+        // Initialize - set up the app (no default data, user uploads via Data Input)
+        function initializeApp() {
+            // Start with empty data - user will upload via Data Input container
+            updateDemandSummary();
+            updateFactorySummary();
+            updateDCSummary();
 
-        // Initialize scenario 1 with current state
-        scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
-        scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
-        // Re-assign customers to restore object references
-        assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
-
-        drawMap();
-        updateResults();
+            drawMap();
+        }
+        initializeApp();
 
         // Load saved scenarios into all dropdowns
         for (let i = 0; i < localStorage.length; i++) {
@@ -2806,35 +3090,7 @@
             }
         }
 
-        // DC list
-        const dcList = document.getElementById('dc-list');
-        dcLocations.forEach(dc => {
-            const div = document.createElement('div');
-            div.className = 'dc-checkbox';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = dc.id;
-            checkbox.checked = dc.active;
-            checkbox.addEventListener('change', () => {
-                dc.active = checkbox.checked;
-                assignCustomers();
-                drawMap();
-                updateResults();
-            });
-            const label = document.createElement('label');
-            label.htmlFor = dc.id;
-            label.textContent = dc.name;
-            div.appendChild(checkbox);
-            div.appendChild(label);
-            dcList.appendChild(div);
-        });
-
-        // Parameters
-        ['first-mile-rate', 'last-mile-rate', 'storage-rate', 'dio'].forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-                updateResults();
-            });
-        });
+        // DC list and Parameters removed (now managed in New Scenario tab)
 
         // Solver and run mode handling
         let selectedSolver = 'highs';
@@ -2900,41 +3156,7 @@
             document.getElementById('live-lead-time').textContent = avgLeadTime.toFixed(2);
         }
 
-        // Run optimization
-        document.getElementById('run-optimization').addEventListener('click', () => {
-            optimize();
-            // Update checkboxes
-            dcLocations.forEach(dc => {
-                document.getElementById(dc.id).checked = dc.active;
-            });
-            // Update scenario 1 with optimized state
-            scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
-            scenario1.demandPoints = JSON.parse(JSON.stringify(demandPoints));
-            assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
-
-            drawMap();
-            updateResults();
-        });
-
-        // Save scenario
-        document.getElementById('save-scenario').addEventListener('click', () => {
-            const name = prompt('Enter scenario name:');
-            if (name) {
-                const scenario = {
-                    name,
-                    dcActive: dcLocations.map(dc => dc.active),
-                    parameters: {
-                        firstMileRate: document.getElementById('first-mile-rate').value,
-                        lastMileRate: document.getElementById('last-mile-rate').value,
-                        storageRate: document.getElementById('storage-rate').value,
-                        dio: document.getElementById('dio').value
-                    },
-                    demands: demandPoints.map(p => ({cluster: p.cluster, demand: p.demand}))
-                };
-                localStorage.setItem('dno-scenario-' + name, JSON.stringify(scenario));
-                alert('Scenario saved!');
-            }
-        });
+        // Run optimization and Save scenario buttons removed (now in New Scenario tab)
 
         // Helper function to load a scenario
         function loadScenario(scenarioValue, scenarioName) {
@@ -3001,9 +3223,9 @@
 
         // ===== NEW SCENARIO TAB IMPLEMENTATION =====
 
-        // New working state for scenario creator
-        let newScenarioDCs = JSON.parse(JSON.stringify(dcLocations));
-        let newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
+        // New working state for scenario creator (will be initialized after data loads)
+        let newScenarioDCs = [];
+        let newScenarioDemands = [];
         let scenarioFeedCounter = 0;
 
         // Clustering state
@@ -3253,7 +3475,14 @@
             showVolumeCircles = this.checked;
             // Re-render all visible maps
             if (mapNewScenario && markersNewScenario) {
-                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                // Check if clustered view is active - if so, use clustered rendering
+                if (isClusteredViewActive && currentClusteringResult) {
+                    const showLinks = document.getElementById('show-centroid-links').checked;
+                    renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
+                                       currentClusteringResult, showLinks);
+                } else {
+                    renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                }
             }
             if (mapAnalytics1 && markersAnalytics1 && scenario1) {
                 renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
@@ -3270,49 +3499,6 @@
             // Initial auto-run
             triggerAutoRun();
         }, 200);
-
-        // Reference Scenario select handler
-        document.getElementById('reference-scenario-select').addEventListener('change', (e) => {
-            if (e.target.value === '') {
-                document.getElementById('reference-scenario-display').style.display = 'none';
-                return;
-            }
-
-            const refScenario = loadScenario(e.target.value, e.target.options[e.target.selectedIndex].text);
-
-            // Show display
-            document.getElementById('reference-scenario-display').style.display = 'block';
-
-            // Generate metrics
-            document.getElementById('reference-metrics').innerHTML = generateMetricsHTML(
-                refScenario.dcLocations,
-                refScenario.demandPoints,
-                refScenario.name
-            );
-
-            // Draw map using Leaflet
-            if (mapReference && markersReference) {
-                mapReference.invalidateSize();
-                renderMapMarkers(mapReference, markersReference, refScenario.dcLocations, refScenario.demandPoints, false);
-            }
-
-            // Display parameters
-            const params = document.getElementById('reference-parameters');
-            params.innerHTML = `
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>First Mile Rate:</strong><br>$${document.getElementById('first-mile-rate').value}/pallet/1,000km
-                </div>
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>Last Mile Rate:</strong><br>$${document.getElementById('last-mile-rate').value}/pallet/1,000km
-                </div>
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>Storage Rate:</strong><br>$${document.getElementById('storage-rate').value}/pallet/month
-                </div>
-                <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;">
-                    <strong>DIO:</strong><br>${document.getElementById('dio').value} days
-                </div>
-            `;
-        });
 
         // Store preloaded scenario state for reset functionality
         let preloadedState = null;
@@ -3335,10 +3521,10 @@
             preloadedState = {
                 dcLocations: JSON.parse(JSON.stringify(preloadScenario.dcLocations)),
                 demandPoints: JSON.parse(JSON.stringify(preloadScenario.demandPoints)),
-                firstMileRate: document.getElementById('first-mile-rate').value,
-                lastMileRate: document.getElementById('last-mile-rate').value,
-                storageRate: document.getElementById('storage-rate').value,
-                dio: document.getElementById('dio').value,
+                firstMileRate: DEFAULT_FIRST_MILE_RATE,
+                lastMileRate: DEFAULT_LAST_MILE_RATE,
+                storageRate: DEFAULT_STORAGE_RATE,
+                dio: DEFAULT_DIO,
                 minDCSizeEnabled: document.getElementById('new-min-dc-size-enabled').checked,
                 minDCSize: document.getElementById('new-min-dc-size').value
             };
@@ -3670,7 +3856,13 @@
 
                     // Update New Scenario map if it exists
                     if (mapNewScenario && markersNewScenario) {
+                        mapNewScenario.invalidateSize();
                         renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                        // Fit map to show all demand points
+                        if (newScenarioDemands.length > 0) {
+                            const bounds = L.latLngBounds(newScenarioDemands.map(p => [p.lat, p.lng]));
+                            mapNewScenario.fitBounds(bounds, { padding: [20, 20] });
+                        }
                     }
 
                     // Update Analytics maps if they exist
@@ -3681,7 +3873,7 @@
                     // Clear file input
                     fileInput.value = '';
 
-                    successDiv.textContent = `Successfully loaded ${newDemands.length} demand points (${demandPoints.reduce((sum, p) => sum + p.demand, 0).toLocaleString()} pallets/month)`;
+                    successDiv.textContent = `Successfully loaded ${newDemands.length} demand points (${demandPoints.reduce((sum, p) => sum + p.demand, 0).toLocaleString()} PCS/month)`;
                     successDiv.style.display = 'block';
                 } catch (err) {
                     errorDiv.textContent = err.message;
@@ -3692,15 +3884,14 @@
             reader.readAsText(file);
         });
 
-        // Data Admin: Reset to default handler
+        // Data Admin: Reset to default handler (clears data)
         document.getElementById('reset-demand-btn').addEventListener('click', function() {
-            generateDemandPoints();
+            demandPoints = [];
             assignCustomers();
             updateDemandSummary();
 
             // Update new scenario data
-            newScenarioDemands = JSON.parse(JSON.stringify(demandPoints));
-            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+            newScenarioDemands = [];
 
             // Update New Scenario map if it exists
             if (mapNewScenario && markersNewScenario) {
@@ -3715,7 +3906,7 @@
             const successDiv = document.getElementById('csv-success');
             const errorDiv = document.getElementById('csv-error');
             errorDiv.style.display = 'none';
-            successDiv.textContent = 'Reset to default demand data';
+            successDiv.textContent = 'Demand data cleared';
             successDiv.style.display = 'block';
         });
 
@@ -3886,23 +4077,10 @@
             reader.readAsText(file);
         });
 
-        // Data Admin: Reset DC to default handler
+        // Data Admin: Reset DC to default handler (clears data)
         document.getElementById('reset-dc-btn').addEventListener('click', function() {
-            dcLocations = [
-                {id: 'DC1', name: 'Medan Hub', lat: 3.5952, lng: 98.6722, active: true},
-                {id: 'DC2', name: 'Pekanbaru Hub', lat: 0.5071, lng: 101.4478, active: false},
-                {id: 'DC3', name: 'Palembang Hub', lat: -2.9761, lng: 104.7754, active: true},
-                {id: 'DC4', name: 'Lampung Hub', lat: -5.4294, lng: 105.2610, active: false},
-                {id: 'DC5', name: 'Jakarta Hub', lat: -6.2088, lng: 106.8456, active: true},
-                {id: 'DC6', name: 'Bandung Hub', lat: -6.9175, lng: 107.6191, active: false},
-                {id: 'DC7', name: 'Semarang Hub', lat: -6.9666, lng: 110.4196, active: true},
-                {id: 'DC8', name: 'Yogyakarta Hub', lat: -7.7956, lng: 110.3695, active: false},
-                {id: 'DC9', name: 'Surabaya Hub', lat: -7.2575, lng: 112.7521, active: true},
-                {id: 'DC10', name: 'Malang Hub', lat: -7.9666, lng: 112.6326, active: false},
-                {id: 'DC11', name: 'Padang Hub', lat: -0.9471, lng: 100.4172, active: false},
-                {id: 'DC12', name: 'Jambi Hub', lat: -1.6101, lng: 103.6131, active: false}
-            ];
-            newScenarioDCs = JSON.parse(JSON.stringify(dcLocations));
+            dcLocations = [];
+            newScenarioDCs = [];
 
             updateDCSummary();
             reinitializeDCCheckboxes();
@@ -3918,8 +4096,7 @@
             }
 
             // Update Analytics scenario 1
-            scenario1.dcLocations = JSON.parse(JSON.stringify(dcLocations));
-            assignCustomersToScenario(scenario1.demandPoints, scenario1.dcLocations);
+            scenario1.dcLocations = [];
             if (mapAnalytics1 && markersAnalytics1) {
                 renderMapMarkers(mapAnalytics1, markersAnalytics1, scenario1.dcLocations, scenario1.demandPoints, false);
             }
@@ -3927,9 +4104,510 @@
             const successDiv = document.getElementById('dc-csv-success');
             const errorDiv = document.getElementById('dc-csv-error');
             errorDiv.style.display = 'none';
-            successDiv.textContent = 'Reset to default DC data';
+            successDiv.textContent = 'DC data cleared';
             successDiv.style.display = 'block';
         });
+
+        // ===== INFO TAB - DEFAULT PARAMETERS EDIT =====
+
+        const MODEL_PARAMS_STORAGE_KEY = 'eno_model_params';
+
+        // Load saved parameters from localStorage or use defaults
+        function loadModelParams() {
+            const saved = localStorage.getItem(MODEL_PARAMS_STORAGE_KEY);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading saved parameters:', e);
+                }
+            }
+            return {
+                firstMileRate: DEFAULT_FIRST_MILE_RATE,
+                lastMileRate: DEFAULT_LAST_MILE_RATE,
+                storageRate: DEFAULT_STORAGE_RATE,
+                dio: DEFAULT_DIO,
+                wacc: 10,
+                transportSpeed: 500,
+                nsv: 300
+            };
+        }
+
+        // Save parameters to localStorage
+        function saveModelParams(params) {
+            localStorage.setItem(MODEL_PARAMS_STORAGE_KEY, JSON.stringify(params));
+        }
+
+        // Global model parameters (loaded from localStorage)
+        let modelParams = loadModelParams();
+
+        // Update display with current values on page load
+        function updateParamsDisplay() {
+            document.getElementById('display-first-mile').textContent = modelParams.firstMileRate.toFixed(2);
+            document.getElementById('display-last-mile').textContent = modelParams.lastMileRate.toFixed(2);
+            document.getElementById('display-storage').textContent = modelParams.storageRate.toFixed(2);
+            document.getElementById('display-dio').textContent = modelParams.dio;
+            document.getElementById('display-wacc').textContent = modelParams.wacc;
+            document.getElementById('display-transport-speed').textContent = modelParams.transportSpeed;
+            document.getElementById('display-nsv').textContent = modelParams.nsv;
+
+            // Also update the New Scenario parameter inputs
+            document.getElementById('new-first-mile-rate').value = modelParams.firstMileRate;
+            document.getElementById('new-last-mile-rate').value = modelParams.lastMileRate;
+            document.getElementById('new-storage-rate').value = modelParams.storageRate;
+            document.getElementById('new-dio').value = modelParams.dio;
+        }
+
+        // Initialize display on page load
+        updateParamsDisplay();
+
+        // Edit button handler
+        document.getElementById('edit-default-params-btn').addEventListener('click', function() {
+            // Populate edit fields with current values
+            document.getElementById('edit-first-mile').value = modelParams.firstMileRate;
+            document.getElementById('edit-last-mile').value = modelParams.lastMileRate;
+            document.getElementById('edit-storage').value = modelParams.storageRate;
+            document.getElementById('edit-dio').value = modelParams.dio;
+            document.getElementById('edit-wacc').value = modelParams.wacc;
+            document.getElementById('edit-transport-speed').value = modelParams.transportSpeed;
+            document.getElementById('edit-nsv').value = modelParams.nsv;
+
+            // Switch to edit mode
+            document.getElementById('params-display-mode').style.display = 'none';
+            document.getElementById('params-edit-mode').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        // Cancel button handler
+        document.getElementById('cancel-params-btn').addEventListener('click', function() {
+            document.getElementById('params-display-mode').style.display = 'block';
+            document.getElementById('params-edit-mode').style.display = 'none';
+            document.getElementById('edit-default-params-btn').style.display = 'block';
+        });
+
+        // Save button handler
+        document.getElementById('save-params-btn').addEventListener('click', function() {
+            // Update model parameters
+            modelParams.firstMileRate = parseFloat(document.getElementById('edit-first-mile').value) || DEFAULT_FIRST_MILE_RATE;
+            modelParams.lastMileRate = parseFloat(document.getElementById('edit-last-mile').value) || DEFAULT_LAST_MILE_RATE;
+            modelParams.storageRate = parseFloat(document.getElementById('edit-storage').value) || DEFAULT_STORAGE_RATE;
+            modelParams.dio = parseInt(document.getElementById('edit-dio').value) || DEFAULT_DIO;
+            modelParams.wacc = parseFloat(document.getElementById('edit-wacc').value) || 10;
+            modelParams.transportSpeed = parseInt(document.getElementById('edit-transport-speed').value) || 500;
+            modelParams.nsv = parseInt(document.getElementById('edit-nsv').value) || 300;
+
+            // Save to localStorage for persistence
+            saveModelParams(modelParams);
+
+            // Update display values
+            updateParamsDisplay();
+
+            // Switch back to display mode
+            document.getElementById('params-display-mode').style.display = 'block';
+            document.getElementById('params-edit-mode').style.display = 'none';
+            document.getElementById('edit-default-params-btn').style.display = 'block';
+
+            // Trigger recalculation if auto-run is enabled
+            triggerAutoRun();
+
+            alert('Default parameters saved successfully!');
+        });
+
+        // ===== DATA INPUT EVENT HANDLERS =====
+
+        // LocalStorage keys for data files
+        const DATA_STORAGE_KEYS = {
+            demand: 'eno_demand_files',
+            factories: 'eno_factories_files',
+            dcs: 'eno_dcs_files'
+        };
+
+        // Load saved files list from localStorage
+        function loadSavedFilesList(dataType) {
+            const key = DATA_STORAGE_KEYS[dataType];
+            const stored = localStorage.getItem(key);
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        // Save files list to localStorage
+        function saveFilesList(dataType, files) {
+            const key = DATA_STORAGE_KEYS[dataType];
+            localStorage.setItem(key, JSON.stringify(files));
+        }
+
+        // Populate dropdown with saved files
+        function populateFileDropdown(dataType) {
+            const select = document.getElementById(`${dataType}-file-select`);
+            const files = loadSavedFilesList(dataType);
+
+            // Clear existing options except the first one
+            select.innerHTML = '<option value="">-- Select a file --</option>';
+
+            // Add saved files
+            Object.keys(files).sort().forEach(fileName => {
+                const option = document.createElement('option');
+                option.value = fileName;
+                option.textContent = fileName;
+                select.appendChild(option);
+            });
+        }
+
+        // Parse CSV data based on type
+        function parseCSVData(csvText, dataType) {
+            const lines = csvText.trim().split('\n');
+            const data = [];
+
+            // Skip header if present (check if first line contains non-numeric values)
+            let startIndex = 0;
+            const firstLine = lines[0].split(',');
+            if (isNaN(parseFloat(firstLine[0]))) {
+                startIndex = 1;
+            }
+
+            let dcIndex = 1;
+            for (let i = startIndex; i < lines.length; i++) {
+                const parts = lines[i].split(',').map(p => p.trim());
+                if (parts.length >= 2) {
+                    const lat = parseFloat(parts[0]);
+                    const lng = parseFloat(parts[1]);
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        if (dataType === 'demand' && parts.length >= 3) {
+                            const demand = parseFloat(parts[2]) || 1;
+                            data.push({ lat, lng, demand });
+                        } else if (dataType === 'dcs') {
+                            // DCs need id, name, and active properties
+                            data.push({
+                                id: `DC${dcIndex}`,
+                                name: `DC${dcIndex}`,
+                                lat,
+                                lng,
+                                active: true
+                            });
+                            dcIndex++;
+                        } else {
+                            data.push({ lat, lng });
+                        }
+                    }
+                }
+            }
+            return data;
+        }
+
+        // Update status display
+        function updateDataStatus(dataType, count) {
+            const countEl = document.getElementById(`${dataType}-point-count`);
+            if (countEl) {
+                countEl.textContent = count;
+            }
+        }
+
+        // Update data table
+        function updateDataTable(dataType, data) {
+            const tbody = document.getElementById(`${dataType}-table-body-input`);
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #f0f0f0';
+
+                if (dataType === 'demand') {
+                    row.innerHTML = `
+                        <td style="padding: 6px 8px;">${index + 1}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${item.lat.toFixed(4)}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${item.lng.toFixed(4)}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${item.demand.toLocaleString()}</td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td style="padding: 6px 8px;">${index + 1}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${item.lat.toFixed(4)}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${item.lng.toFixed(4)}</td>
+                    `;
+                }
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load data into the application
+        function loadDataIntoApp(dataType, data) {
+            if (dataType === 'demand') {
+                newScenarioDemands = data;
+                updateDataStatus('demand', data.length);
+                updateDataTable('demand', data);
+                // Assign customers to DCs if DCs exist
+                if (typeof assignCustomersToScenario === 'function' && newScenarioDCs.length > 0) {
+                    assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+                }
+                // Refresh map if exists
+                if (mapNewScenario && markersNewScenario) {
+                    mapNewScenario.invalidateSize();
+                    renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                    // Fit bounds to show all points
+                    const allPoints = [...newScenarioDCs, ...newScenarioDemands].filter(p => p && p.lat && p.lng);
+                    if (allPoints.length > 0) {
+                        const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lng]));
+                        mapNewScenario.fitBounds(bounds, { padding: [20, 20] });
+                    }
+                }
+            } else if (dataType === 'factories') {
+                factories = data;
+                updateDataStatus('factories', data.length);
+                updateDataTable('factories', data);
+            } else if (dataType === 'dcs') {
+                // Ensure DC data has required properties (id, name, active)
+                const processedData = data.map((dc, index) => ({
+                    id: dc.id || `DC${index + 1}`,
+                    name: dc.name || `DC${index + 1}`,
+                    lat: dc.lat,
+                    lng: dc.lng,
+                    active: dc.active !== undefined ? dc.active : true
+                }));
+                newScenarioDCs = processedData;
+                // Also update global dcLocations
+                dcLocations = JSON.parse(JSON.stringify(processedData));
+                updateDataStatus('dcs', processedData.length);
+                updateDataTable('dcs', processedData);
+                // Update DC list UI if exists
+                if (typeof updateNewScenarioDCList === 'function') {
+                    updateNewScenarioDCList();
+                }
+                // Re-assign customers to new DCs
+                if (typeof assignCustomersToScenario === 'function' && newScenarioDemands.length > 0) {
+                    assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
+                }
+                // Refresh map if exists
+                if (mapNewScenario && markersNewScenario) {
+                    mapNewScenario.invalidateSize();
+                    renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                    // Fit bounds to show all points (DCs and demands)
+                    const allPoints = [...newScenarioDCs, ...newScenarioDemands].filter(p => p && p.lat && p.lng);
+                    if (allPoints.length > 0) {
+                        const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lng]));
+                        mapNewScenario.fitBounds(bounds, { padding: [20, 20] });
+                    }
+                }
+            }
+        }
+
+        // Handle file upload
+        function handleFileUpload(file, dataType) {
+            if (!file || !file.name.endsWith('.csv')) {
+                alert('Please upload a CSV file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                const data = parseCSVData(csvText, dataType);
+
+                if (data.length === 0) {
+                    alert('No valid data found in the CSV file.');
+                    return;
+                }
+
+                // Save to localStorage
+                const files = loadSavedFilesList(dataType);
+                files[file.name] = {
+                    data: data,
+                    uploadedAt: new Date().toISOString()
+                };
+                saveFilesList(dataType, files);
+
+                // Refresh dropdown and select the new file
+                populateFileDropdown(dataType);
+                document.getElementById(`${dataType}-file-select`).value = file.name;
+
+                // Load data into app
+                loadDataIntoApp(dataType, data);
+
+                alert(`Successfully loaded ${data.length} ${dataType} points from ${file.name}`);
+            };
+            reader.readAsText(file);
+        }
+
+        // Data Input section toggle (collapsible)
+        document.getElementById('data-input-toggle').addEventListener('click', function(e) {
+            const content = document.getElementById('data-input-content');
+            const icon = document.getElementById('data-input-toggle-icon');
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            icon.innerHTML = isHidden ? '&#9660;' : '&#9654;';
+        });
+
+        // Setup event handlers for each data type
+        ['demand', 'factories', 'dcs'].forEach(dataType => {
+            // Table toggle
+            const tableToggle = document.getElementById(`${dataType}-table-toggle-input`);
+            if (tableToggle) {
+                tableToggle.addEventListener('click', function() {
+                    const container = document.getElementById(`${dataType}-table-container-input`);
+                    const icon = document.getElementById(`${dataType}-table-icon-input`);
+                    const isHidden = container.style.display === 'none';
+                    container.style.display = isHidden ? 'block' : 'none';
+                    icon.innerHTML = isHidden ? '&#9660;' : '&#9654;';
+                });
+            }
+
+            // File selection dropdown
+            const fileSelect = document.getElementById(`${dataType}-file-select`);
+            if (fileSelect) {
+                fileSelect.addEventListener('change', function() {
+                    const fileName = this.value;
+                    if (!fileName) return;
+
+                    const files = loadSavedFilesList(dataType);
+                    if (files[fileName] && Array.isArray(files[fileName].data)) {
+                        loadDataIntoApp(dataType, files[fileName].data);
+                    }
+                });
+            }
+
+            // Drop zone
+            const dropZone = document.getElementById(`${dataType}-drop-zone`);
+            const fileInput = document.getElementById(`${dataType}-file-upload`);
+
+            if (dropZone && fileInput) {
+                // Click to browse
+                dropZone.addEventListener('click', function() {
+                    fileInput.click();
+                });
+
+                // File input change
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        handleFileUpload(this.files[0], dataType);
+                    }
+                });
+
+                // Drag and drop
+                dropZone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#007bff';
+                    this.style.background = '#f0f7ff';
+                });
+
+                dropZone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#ccc';
+                    this.style.background = 'transparent';
+                });
+
+                dropZone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#ccc';
+                    this.style.background = 'transparent';
+
+                    if (e.dataTransfer.files.length > 0) {
+                        handleFileUpload(e.dataTransfer.files[0], dataType);
+                    }
+                });
+            }
+
+            // Save button
+            const saveBtn = document.getElementById(`${dataType}-file-save`);
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    let currentData;
+                    if (dataType === 'demand') currentData = newScenarioDemands;
+                    else if (dataType === 'factories') currentData = factories;
+                    else if (dataType === 'dcs') currentData = newScenarioDCs;
+
+                    if (!currentData || currentData.length === 0) {
+                        alert('No data to save.');
+                        return;
+                    }
+
+                    const fileName = prompt('Enter a filename for this data:', `${dataType}_data.csv`);
+                    if (!fileName) return;
+
+                    const files = loadSavedFilesList(dataType);
+                    files[fileName] = {
+                        data: currentData,
+                        uploadedAt: new Date().toISOString()
+                    };
+                    saveFilesList(dataType, files);
+
+                    populateFileDropdown(dataType);
+                    document.getElementById(`${dataType}-file-select`).value = fileName;
+
+                    alert(`Data saved as "${fileName}"`);
+                });
+            }
+
+            // Rename button
+            const renameBtn = document.getElementById(`${dataType}-file-rename`);
+            if (renameBtn) {
+                renameBtn.addEventListener('click', function() {
+                    const select = document.getElementById(`${dataType}-file-select`);
+                    const oldName = select.value;
+
+                    if (!oldName) {
+                        alert('Please select a file to rename.');
+                        return;
+                    }
+
+                    const newName = prompt('Enter new filename:', oldName);
+                    if (!newName || newName === oldName) return;
+
+                    const files = loadSavedFilesList(dataType);
+                    if (files[oldName]) {
+                        files[newName] = files[oldName];
+                        delete files[oldName];
+                        saveFilesList(dataType, files);
+
+                        populateFileDropdown(dataType);
+                        select.value = newName;
+
+                        alert(`File renamed to "${newName}"`);
+                    }
+                });
+            }
+
+            // Delete button
+            const deleteBtn = document.getElementById(`${dataType}-file-delete`);
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const select = document.getElementById(`${dataType}-file-select`);
+                    const fileName = select.value;
+
+                    if (!fileName) {
+                        alert('Please select a file to delete.');
+                        return;
+                    }
+
+                    if (!confirm(`Are you sure you want to delete "${fileName}"?`)) return;
+
+                    const files = loadSavedFilesList(dataType);
+                    delete files[fileName];
+                    saveFilesList(dataType, files);
+
+                    populateFileDropdown(dataType);
+                    select.value = '';
+
+                    alert(`File "${fileName}" deleted.`);
+                });
+            }
+
+            // Initialize dropdown with saved files
+            populateFileDropdown(dataType);
+        });
+
+        // Initialize data tables with current data
+        if (newScenarioDemands && newScenarioDemands.length > 0) {
+            updateDataStatus('demand', newScenarioDemands.length);
+            updateDataTable('demand', newScenarioDemands);
+        }
+        if (factories && factories.length > 0) {
+            updateDataStatus('factories', factories.length);
+            updateDataTable('factories', factories);
+        }
+        if (newScenarioDCs && newScenarioDCs.length > 0) {
+            updateDataStatus('dcs', newScenarioDCs.length);
+            updateDataTable('dcs', newScenarioDCs);
+        }
 
         // ===== CLUSTERING EVENT HANDLERS =====
 
@@ -3943,6 +4621,35 @@
             const isHidden = content.style.display === 'none';
             content.style.display = isHidden ? 'block' : 'none';
             icon.innerHTML = isHidden ? '&#9660;' : '&#9654;';
+        });
+
+        // Create New Scenario section toggle (collapsible)
+        document.getElementById('scenario-toggle').addEventListener('click', function(e) {
+            // Don't toggle if clicking on buttons or select
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') return;
+
+            const content = document.getElementById('scenario-content');
+            const icon = document.getElementById('scenario-toggle-icon');
+            const isHidden = content.style.display === 'none';
+            content.style.display = isHidden ? 'block' : 'none';
+            icon.innerHTML = isHidden ? '&#9660;' : '&#9654;';
+
+            // Fix map display issue when section becomes visible
+            if (isHidden && mapNewScenario) {
+                setTimeout(() => {
+                    mapNewScenario.invalidateSize();
+                    // Re-render markers if we have data
+                    if (newScenarioDemands.length > 0 || newScenarioDCs.length > 0) {
+                        renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                        // Fit bounds to show all points
+                        const allPoints = [...newScenarioDemands, ...newScenarioDCs].filter(p => p && p.lat && p.lng);
+                        if (allPoints.length > 0) {
+                            const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lng]));
+                            mapNewScenario.fitBounds(bounds, { padding: [20, 20] });
+                        }
+                    }
+                }, 100);
+            }
         });
 
         // Run Clustering button
@@ -3977,69 +4684,34 @@
                 const avgDemand = Math.round(totalDemand / k);
                 infoDiv.innerHTML =
                     `<strong>${k} clusters</strong> created in ${currentClusteringResult.iterations} iterations. ` +
-                    `Total demand: ${totalDemand.toLocaleString()} pallets. ` +
-                    `Avg per cluster: ${avgDemand.toLocaleString()} pallets.`;
+                    `Total demand: ${totalDemand.toLocaleString()} pieces. ` +
+                    `Avg per cluster: ${avgDemand.toLocaleString()} pieces.`;
 
-                // Show centroid lines option
-                document.getElementById('centroid-lines-label').style.display = 'flex';
+                // Show action buttons
+                document.getElementById('clustering-action-buttons').style.display = 'flex';
 
                 // Auto-enable clustered view
-                document.getElementById('show-clustered-view').checked = true;
                 isClusteredViewActive = true;
 
-                // Render clustered view on main map
-                const showLines = document.getElementById('show-centroid-lines').checked;
+                // Render clustered view
+                const showLinks = document.getElementById('show-centroid-links').checked;
                 renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
-                                   currentClusteringResult, showLines);
+                                   currentClusteringResult, showLinks);
 
-                // Show and initialize the clustering map section
-                const mapSection = document.getElementById('clustering-map-section');
-                mapSection.style.display = 'block';
-
-                // Initialize clustering map if not already done
-                if (!mapClustering) {
-                    mapClustering = initLeafletMap('clustering-map');
-                    if (mapClustering) {
-                        markersClustering = L.layerGroup().addTo(mapClustering);
-                    }
-                }
-
-                // Render clustering map with Voronoi
-                if (mapClustering) {
-                    setTimeout(() => {
-                        mapClustering.invalidateSize();
-                        renderClusteringMap({
-                            showVoronoi: document.getElementById('show-voronoi-tiles').checked,
-                            showDemandPoints: document.getElementById('show-demand-points').checked,
-                            showLinks: document.getElementById('show-cluster-links').checked
-                        });
-                    }, 100);
-                }
+                // Render the embedded clustering map with Voronoi
+                renderClusteringMap();
             }, 0);
         });
 
-        // Toggle clustered view checkbox
-        document.getElementById('show-clustered-view').addEventListener('change', function() {
-            isClusteredViewActive = this.checked;
-
-            if (this.checked && currentClusteringResult) {
-                const showLines = document.getElementById('show-centroid-lines').checked;
-                renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
-                                   currentClusteringResult, showLines);
-            } else {
-                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
-            }
-
-            // Show/hide centroid lines option
-            document.getElementById('centroid-lines-label').style.display =
-                (this.checked && currentClusteringResult) ? 'flex' : 'none';
-        });
-
-        // Toggle centroid lines checkbox
-        document.getElementById('show-centroid-lines').addEventListener('change', function() {
-            if (isClusteredViewActive && currentClusteringResult) {
-                renderClusteredView(mapNewScenario, markersNewScenario, newScenarioDemands,
-                                   currentClusteringResult, this.checked);
+        // Visualization checkboxes for clustering map
+        ['show-voronoi', 'show-demand-points', 'show-centroid-links'].forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.addEventListener('change', function() {
+                    if (currentClusteringResult) {
+                        renderClusteringMap();
+                    }
+                });
             }
         });
 
@@ -4049,56 +4721,14 @@
             clusterColors = [];
             isClusteredViewActive = false;
 
-            document.getElementById('show-clustered-view').checked = true; // Keep checked by default
-            document.getElementById('show-centroid-lines').checked = false;
-            document.getElementById('centroid-lines-label').style.display = 'none';
+            document.getElementById('clustering-action-buttons').style.display = 'none';
             document.getElementById('clustering-info').style.display = 'none';
 
-            // Hide clustering map section
-            document.getElementById('clustering-map-section').style.display = 'none';
-
-            // Clear clustering map layers
-            if (markersClustering) {
-                markersClustering.clearLayers();
-            }
-            if (voronoiLayer && mapClustering) {
-                mapClustering.removeLayer(voronoiLayer);
-                voronoiLayer = null;
-            }
+            // Hide the clustering map
+            document.getElementById('clustering-map-container').style.display = 'none';
 
             // Restore normal map view
             renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
-        });
-
-        // Clustering map visualization toggle handlers
-        document.getElementById('show-voronoi-tiles').addEventListener('change', function() {
-            if (currentClusteringResult && mapClustering) {
-                renderClusteringMap({
-                    showVoronoi: this.checked,
-                    showDemandPoints: document.getElementById('show-demand-points').checked,
-                    showLinks: document.getElementById('show-cluster-links').checked
-                });
-            }
-        });
-
-        document.getElementById('show-demand-points').addEventListener('change', function() {
-            if (currentClusteringResult && mapClustering) {
-                renderClusteringMap({
-                    showVoronoi: document.getElementById('show-voronoi-tiles').checked,
-                    showDemandPoints: this.checked,
-                    showLinks: document.getElementById('show-cluster-links').checked
-                });
-            }
-        });
-
-        document.getElementById('show-cluster-links').addEventListener('change', function() {
-            if (currentClusteringResult && mapClustering) {
-                renderClusteringMap({
-                    showVoronoi: document.getElementById('show-voronoi-tiles').checked,
-                    showDemandPoints: document.getElementById('show-demand-points').checked,
-                    showLinks: this.checked
-                });
-            }
         });
 
         // Add centroids as DCs button
@@ -4133,9 +4763,7 @@
             assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
 
             // Turn off clustered view and show normal map with new DCs
-            document.getElementById('show-clustered-view').checked = false;
             isClusteredViewActive = false;
-            document.getElementById('centroid-lines-label').style.display = 'none';
             renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
 
             triggerAutoRun();
@@ -4182,9 +4810,7 @@
             updateDCSummary();
 
             // Turn off clustered view and show normal map with new DCs
-            document.getElementById('show-clustered-view').checked = false;
             isClusteredViewActive = false;
-            document.getElementById('centroid-lines-label').style.display = 'none';
             renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
 
             triggerAutoRun();
@@ -4245,11 +4871,11 @@
                         <div class="scenario-map" id="${scenarioId}-map" style="width: 100%; height: 500px; border: 1px solid #ccc; border-radius: 8px;"></div>
                     </div>
                     <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px;">
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>$${params.firstMile}/pallet/1,000km</div>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>$${params.lastMile}/pallet/1,000km</div>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Storage Rate:</strong><br>$${params.storage}/pallet/month</div>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>DIO:</strong><br>${params.dio} days</div>
-                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Min DC Size:</strong><br>${params.minDCSizeEnabled ? params.minDCSize + ' pallets' : 'Disabled'}</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>First Mile Rate:</strong><br>${params.firstMile} IDR/PCS/1,000km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Last Mile Rate:</strong><br>${params.lastMile} IDR/PCS/1,000km</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Storage Rate:</strong><br>${params.storage} IDR/PCS/month</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>DOS:</strong><br>${params.dio} days</div>
+                        <div style="padding: 15px; background: #f8f9fa; border-radius: 4px;"><strong>Min DC Size:</strong><br>${params.minDCSizeEnabled ? params.minDCSize + ' PCS' : 'Disabled'}</div>
                         <div style="padding: 15px; background: #e8f4fd; border-radius: 4px;"><strong>Solver:</strong><br>${params.solver || 'Heuristic'}${params.solveTime ? ' (' + params.solveTime + 'ms)' : ''}</div>
                     </div>
                 </div>
