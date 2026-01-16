@@ -803,20 +803,20 @@
                                 <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Parameters</h4>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">First Mile Rate (IDR/PCS/1,000km)</label>
-                                        <input type="number" id="new-first-mile-rate" value="5.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">First Mile Rate (IDR/pallet/km)</label>
+                                        <input type="number" id="new-first-mile-rate" value="500" step="1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Last Mile Rate (IDR/PCS/1,000km)</label>
-                                        <input type="number" id="new-last-mile-rate" value="9.60" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                        <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Last Mile Rate (IDR/pallet/km)</label>
+                                        <input type="number" id="new-last-mile-rate" value="2000" step="1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
                                         <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">Storage Rate (IDR/PCS/month)</label>
-                                        <input type="number" id="new-storage-rate" value="0.30" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                        <input type="number" id="new-storage-rate" value="1400" step="1" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div>
                                         <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #64748b;">DOS (days)</label>
-                                        <input type="number" id="new-dio" value="30" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                                        <input type="number" id="new-dio" value="20" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                                     </div>
                                     <div style="grid-column: span 2;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -825,7 +825,7 @@
                                                 Min DC Size
                                             </label>
                                             <input type="number" id="new-min-dc-size" value="500" min="0" style="width: 90px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
-                                            <span style="font-size: 12px; color: #64748b;">PCS</span>
+                                            <span style="font-size: 12px; color: #64748b;">pallets</span>
                                         </div>
                                     </div>
                                     <div style="grid-column: span 2;">
@@ -841,8 +841,8 @@
                                     <div style="grid-column: span 2;">
                                         <div style="display: flex; align-items: center; gap: 10px;">
                                             <label style="font-size: 12px; color: #64748b;">Mid Mile Rate</label>
-                                            <input type="number" id="new-mid-mile-rate" value="100" min="0" style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
-                                            <span style="font-size: 12px; color: #64748b;">IDR/PCS/1,000km</span>
+                                            <input type="number" id="new-mid-mile-rate" value="1000" min="0" style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
+                                            <span style="font-size: 12px; color: #64748b;">IDR/pallet/km</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1015,10 +1015,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">50</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td id="display-mid-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">100</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">200</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1400</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">500</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td id="display-mid-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1,000</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">2,000</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1,400</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Pieces per Pallet</td><td id="display-pieces-per-pallet" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">3,800</td><td style="padding: 10px; border-bottom: 1px solid #eee;">PCS/pallet</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average pieces per pallet</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td id="display-dio" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">20</td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td id="display-wacc" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">10</td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Truck Speed</td><td id="display-truck-speed" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">40</td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/h</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average truck speed for deliveries</td></tr>
@@ -1041,10 +1042,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-mid-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
-                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-storage" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-mid-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/pallet/km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-storage" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Pieces per Pallet</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-pieces-per-pallet" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">PCS/pallet</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average pieces per pallet</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-dio" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">WACC</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-wacc" step="0.1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">%</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Weighted Average Cost of Capital</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Truck Speed</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-truck-speed" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">km/h</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Average truck speed for deliveries</td></tr>
@@ -1080,41 +1082,44 @@
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">First Mile Cost (Annual)</h4>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <p>$$C_{FM} = \sum_{dc \in \text{ActiveDCs}} d(\text{factory}, dc) \times \text{throughput}_{dc} \times \text{rate}_{FM} \times \frac{12}{1000}$$</p>
+                                <p>$$C_{FM} = \sum_{dc \in \text{ActiveDCs}} d(\text{factory}, dc) \times \frac{\text{throughput}_{dc}}{\text{piecesPerPallet}} \times \text{rate}_{FM} \times 12$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where rate is in IDR/pallet/km</p>
                             </div>
                             <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                                <strong>Example:</strong> A DC receives 10,000 PCS/month and is 500 km from the factory.<br>
-                                $C_{FM} = 500 \times 10{,}000 \times 5.60 \times \frac{12}{1000} = 336{,}000$ IDR/year
+                                <strong>Example:</strong> A DC receives 3,800,000 PCS/month (1,000 pallets) and is 500 km from the factory.<br>
+                                $C_{FM} = 500 \times 1{,}000 \times 500 \times 12 = 3{,}000{,}000{,}000$ IDR/year
                             </div>
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Last Mile Cost (Annual)</h4>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <p>$$C_{LM} = \sum_{p \in \text{DemandPoints}} d(dc_p, p) \times \text{demand}_p \times \text{rate}_{LM} \times \frac{12}{1000}$$</p>
+                                <p>$$C_{LM} = \sum_{p \in \text{DemandPoints}} d(dc_p, p) \times \frac{\text{demand}_p}{\text{piecesPerPallet}} \times \text{rate}_{LM} \times 12$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where rate is in IDR/pallet/km</p>
                             </div>
                             <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                                <strong>Example:</strong> A customer with 2,000 PCS/month demand is 100 km from its assigned DC.<br>
-                                $C_{LM} = 100 \times 2{,}000 \times 9.60 \times \frac{12}{1000} = 23{,}040$ IDR/year
+                                <strong>Example:</strong> A customer with 38,000 PCS/month demand (10 pallets) is 100 km from its assigned DC.<br>
+                                $C_{LM} = 100 \times 10 \times 2{,}000 \times 12 = 24{,}000{,}000$ IDR/year
                             </div>
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Mid Mile Cost (Annual) <span style="background: #6b46c1; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: normal;">Optional</span></h4>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <p>$$C_{MM} = \sum_{sat \in \text{Satellites}} d(rdc_{sat}, sat) \times \text{throughput}_{sat} \times \text{rate}_{MM} \times \frac{12}{1000}$$</p>
+                                <p>$$C_{MM} = \sum_{sat \in \text{Satellites}} d(rdc_{sat}, sat) \times \frac{\text{throughput}_{sat}}{\text{piecesPerPallet}} \times \text{rate}_{MM} \times 12$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where rate is in IDR/pallet/km</p>
                             </div>
                             <div style="background: #f3e8ff; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
                                 <strong>When enabled:</strong> DCs with throughput below threshold (default 10M PCS) are classified as Satellites and receive goods from the nearest RDC instead of directly from the factory.<br>
-                                <strong>Example:</strong> A Satellite DC handles 5M PCS/month and is 200 km from its supplying RDC.<br>
-                                $C_{MM} = 200 \times 5{,}000{,}000 \times 100 \times \frac{12}{1000} = 1{,}200{,}000{,}000$ IDR/year
+                                <strong>Example:</strong> A Satellite DC handles 3,800,000 PCS/month (1,000 pallets) and is 200 km from its supplying RDC.<br>
+                                $C_{MM} = 200 \times 1{,}000 \times 1{,}000 \times 12 = 2{,}400{,}000{,}000$ IDR/year
                             </div>
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Storage Cost (Annual)</h4>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
-                                <p>$$C_{Storage} = \sum_{dc \in \text{ActiveDCs}} \left(\frac{\text{Throughput}_{dc} \times DOS}{365}\right) \times \text{rate}_{storage} \times 12$$</p>
-                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where Throughput is annual (PCS/year)</p>
+                                <p>$$C_{Storage} = \sum_{dc \in \text{ActiveDCs}} \max\left(\frac{\text{Throughput}_{dc} \times DOS}{365}, \text{minDCSize} \times \text{piecesPerPallet}\right) \times \text{rate}_{storage} \times 12$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where Throughput is monthly (PCS/month), minDCSize is in pallets</p>
                             </div>
                             <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
-                                <strong>Example:</strong> A DC handles 10,000,000 PCS/year with DOS = 30 days.<br>
-                                Average inventory $= \frac{10{,}000{,}000 \times 30}{365} = 821{,}918$ PCS<br>
-                                $C_{Storage} = 821{,}918 \times 0.30 \times 12 = 2{,}958{,}905$ IDR/year
+                                <strong>Example:</strong> A DC handles 10,000,000 PCS/month with DOS = 20 days.<br>
+                                Average inventory $= \frac{10{,}000{,}000 \times 20}{365} = 547{,}945$ PCS<br>
+                                $C_{Storage} = 547{,}945 \times 1{,}400 \times 12 = 9{,}205{,}479{,}200$ IDR/year
                             </div>
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Total Cost</h4>
@@ -1283,13 +1288,14 @@
         // JavaScript code here
 
         // ===== DEFAULT PARAMETERS =====
-        const DEFAULT_FIRST_MILE_RATE = 50;    // IDR/PCS/1,000km
-        const DEFAULT_LAST_MILE_RATE = 200;    // IDR/PCS/1,000km
+        const DEFAULT_FIRST_MILE_RATE = 500;   // IDR/pallet/km
+        const DEFAULT_MID_MILE_RATE = 1000;    // IDR/pallet/km
+        const DEFAULT_LAST_MILE_RATE = 2000;   // IDR/pallet/km
         const DEFAULT_STORAGE_RATE = 1400;     // IDR/PCS/month
         const DEFAULT_DIO = 20;                // DOS (Days of Stock)
         const DEFAULT_TRUCK_SPEED = 40;        // km/h
         const DEFAULT_OPENING_HOURS = 12;      // hours/day
-        const DEFAULT_MID_MILE_RATE = 100;     // IDR/PCS/1,000km
+        const DEFAULT_PIECES_PER_PALLET = 3800; // PCS/pallet
         const DEFAULT_MIN_VOLUME_THRESHOLD = 10000000;  // 10M PCS
 
         // ===== LEAFLET MAP INFRASTRUCTURE =====
@@ -1904,6 +1910,7 @@
                 wacc: 10,
                 truckSpeed: DEFAULT_TRUCK_SPEED,
                 openingHours: DEFAULT_OPENING_HOURS,
+                piecesPerPallet: DEFAULT_PIECES_PER_PALLET,
                 nsv: 47000
             };
         }
@@ -3826,7 +3833,8 @@
                 const minDCSize = parseInt(document.getElementById('new-min-dc-size').value || 500);
                 const midMileEnabled = document.getElementById('new-mid-mile-enabled').checked;
                 const minVolumeThreshold = parseFloat(document.getElementById('new-min-volume-threshold').value || 10) * 1000000; // Convert M to actual
-                const midMileRate = parseFloat(document.getElementById('new-mid-mile-rate').value || 100);
+                const midMileRate = parseFloat(document.getElementById('new-mid-mile-rate').value || 1000);
+                const piecesPerPallet = modelParams.piecesPerPallet || DEFAULT_PIECES_PER_PALLET;
 
                 // Clone current state
                 const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
@@ -3839,21 +3847,26 @@
                     function calculateScenarioCost(dcs, demands) {
                         const activeDCs = dcs.filter(dc => dc.active);
                         let total = 0;
-                        const fm = firstMile / 1000;
-                        const lm = lastMile / 1000;
+                        const ppp = piecesPerPallet;
+                        const fm = firstMile;  // IDR/pallet/km
+                        const lm = lastMile;   // IDR/pallet/km
 
                         activeDCs.forEach(dc => {
                             const nearestFactory = findNearestActiveFactory(dc);
                             const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
-                            const throughput = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
-                            total += dist * throughput * fm * 12;
-                            const avgInventory = throughput * (dio / 365);
-                            const billableInventory = minDCSizeEnabled ? Math.max(avgInventory, minDCSize) : avgInventory;
-                            total += billableInventory * storage * 12;
+                            const throughputPCS = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                            const throughputPallets = throughputPCS / ppp;
+                            total += dist * throughputPallets * fm * 12;
+                            const avgInventoryPCS = throughputPCS * (dio / 365);
+                            const avgInventoryPallets = avgInventoryPCS / ppp;
+                            const billableInventoryPallets = minDCSizeEnabled ? Math.max(avgInventoryPallets, minDCSize) : avgInventoryPallets;
+                            const billableInventoryPCS = billableInventoryPallets * ppp;
+                            total += billableInventoryPCS * storage * 12;
                         });
                         demands.forEach(point => {
                             if (point.assignedDC || point.assignedDCId) {
-                                total += point.distance * point.demand * lm * 12;
+                                const pallets = point.demand / ppp;
+                                total += point.distance * pallets * lm * 12;
                             }
                         });
                         return total;
@@ -3920,7 +3933,7 @@
                 classifyDCs(runDCs, runDemands, midMileEnabled, minVolumeThreshold);
 
                 // Calculate costs for display
-                const costs = calculateCostsForScenario(runDCs, runDemands, {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, midMileRate});
+                const costs = calculateCostsForScenario(runDCs, runDemands, {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, midMileRate, piecesPerPallet});
 
                 // Update live indicators
                 updateLiveIndicators(costs, runDemands, runDCs);
@@ -3946,7 +3959,7 @@
                 lastOptimizationResult = {
                     dcs: runDCs,
                     demands: runDemands,
-                    params: {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, minVolumeThreshold, midMileRate, solver: solverNames[solver], solveTime}
+                    params: {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, minVolumeThreshold, midMileRate, piecesPerPallet, solver: solverNames[solver], solveTime}
                 };
 
                 // Add to feed if requested (manual run or save)
@@ -3972,39 +3985,45 @@
             let totalMidMile = 0;
             let totalLastMile = 0;
             let totalStorage = 0;
-            // Rates are in IDR/PCS/1000km, divide by 1000 for per-km rate
-            const fm = params.firstMile / 1000;
-            const lm = params.lastMile / 1000;
-            const mm = (params.midMileRate || DEFAULT_MID_MILE_RATE) / 1000;
+            // Rates are in IDR/pallet/km - convert pieces to pallets using piecesPerPallet
+            const ppp = params.piecesPerPallet || DEFAULT_PIECES_PER_PALLET;
+            const fm = params.firstMile;  // IDR/pallet/km
+            const lm = params.lastMile;   // IDR/pallet/km
+            const mm = params.midMileRate || DEFAULT_MID_MILE_RATE;  // IDR/pallet/km
 
             activeDCs.forEach(dc => {
                 // Use assignedDCId for comparison (works after JSON serialization)
-                const throughput = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const throughputPCS = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
+                const throughputPallets = throughputPCS / ppp;
 
                 // First mile: only for DCs receiving directly from factory (RDC or Direct, not Satellite)
                 if (!params.midMileEnabled || dc.dcType !== 'satellite') {
                     const nearestFactory = findNearestActiveFactory(dc);
                     const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
-                    // Annual cost: distance * demand * rate * 12 months
-                    totalFirstMile += dist * throughput * fm * 12;
+                    // Annual cost: distance * pallets * rate * 12 months
+                    totalFirstMile += dist * throughputPallets * fm * 12;
                 }
 
                 // Mid-mile: satellite throughput × distance to supplier RDC × rate
                 if (params.midMileEnabled && dc.dcType === 'satellite' && dc.supplierDC) {
-                    totalMidMile += dc.distanceToSupplier * throughput * mm * 12;
+                    totalMidMile += dc.distanceToSupplier * throughputPallets * mm * 12;
                 }
 
-                // Storage calculation
-                const avgInventory = throughput * (params.dio / 365);
-                const billableInventory = params.minDCSizeEnabled ? Math.max(avgInventory, params.minDCSize) : avgInventory;
-                totalStorage += billableInventory * params.storage * 12;
+                // Storage calculation (still in pieces)
+                const avgInventoryPCS = throughputPCS * (params.dio / 365);
+                const avgInventoryPallets = avgInventoryPCS / ppp;
+                // Min DC Size is in pallets - compare in pallets, then convert back to pieces for storage cost
+                const billableInventoryPallets = params.minDCSizeEnabled ? Math.max(avgInventoryPallets, params.minDCSize) : avgInventoryPallets;
+                const billableInventoryPCS = billableInventoryPallets * ppp;
+                totalStorage += billableInventoryPCS * params.storage * 12;
             });
 
             // Last mile (customer deliveries)
             demands.forEach(point => {
                 if (point.assignedDC || point.assignedDCId) {
-                    // Annual cost: distance * demand * rate * 12 months
-                    totalLastMile += point.distance * point.demand * lm * 12;
+                    const pallets = point.demand / ppp;
+                    // Annual cost: distance * pallets * rate * 12 months
+                    totalLastMile += point.distance * pallets * lm * 12;
                 }
             });
 
@@ -4375,21 +4394,22 @@
 
         // Update display with current values on page load
         function updateParamsDisplay() {
-            document.getElementById('display-first-mile').textContent = modelParams.firstMileRate;
-            document.getElementById('display-mid-mile').textContent = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
-            document.getElementById('display-last-mile').textContent = modelParams.lastMileRate;
-            document.getElementById('display-storage').textContent = modelParams.storageRate;
+            document.getElementById('display-first-mile').textContent = (modelParams.firstMileRate || DEFAULT_FIRST_MILE_RATE).toLocaleString();
+            document.getElementById('display-mid-mile').textContent = (modelParams.midMileRate || DEFAULT_MID_MILE_RATE).toLocaleString();
+            document.getElementById('display-last-mile').textContent = (modelParams.lastMileRate || DEFAULT_LAST_MILE_RATE).toLocaleString();
+            document.getElementById('display-storage').textContent = (modelParams.storageRate || DEFAULT_STORAGE_RATE).toLocaleString();
+            document.getElementById('display-pieces-per-pallet').textContent = (modelParams.piecesPerPallet || DEFAULT_PIECES_PER_PALLET).toLocaleString();
             document.getElementById('display-dio').textContent = modelParams.dio;
             document.getElementById('display-wacc').textContent = modelParams.wacc;
             document.getElementById('display-truck-speed').textContent = modelParams.truckSpeed;
             document.getElementById('display-opening-hours').textContent = modelParams.openingHours;
-            document.getElementById('display-nsv').textContent = modelParams.nsv;
+            document.getElementById('display-nsv').textContent = (modelParams.nsv || 47000).toLocaleString();
 
             // Also update the New Scenario parameter inputs
-            document.getElementById('new-first-mile-rate').value = modelParams.firstMileRate;
-            document.getElementById('new-last-mile-rate').value = modelParams.lastMileRate;
-            document.getElementById('new-storage-rate').value = modelParams.storageRate;
-            document.getElementById('new-dio').value = modelParams.dio;
+            document.getElementById('new-first-mile-rate').value = modelParams.firstMileRate || DEFAULT_FIRST_MILE_RATE;
+            document.getElementById('new-last-mile-rate').value = modelParams.lastMileRate || DEFAULT_LAST_MILE_RATE;
+            document.getElementById('new-storage-rate').value = modelParams.storageRate || DEFAULT_STORAGE_RATE;
+            document.getElementById('new-dio').value = modelParams.dio || DEFAULT_DIO;
             document.getElementById('new-mid-mile-rate').value = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
         }
 
@@ -4399,15 +4419,16 @@
         // Edit button handler
         document.getElementById('edit-default-params-btn').addEventListener('click', function() {
             // Populate edit fields with current values
-            document.getElementById('edit-first-mile').value = modelParams.firstMileRate;
+            document.getElementById('edit-first-mile').value = modelParams.firstMileRate || DEFAULT_FIRST_MILE_RATE;
             document.getElementById('edit-mid-mile').value = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
-            document.getElementById('edit-last-mile').value = modelParams.lastMileRate;
-            document.getElementById('edit-storage').value = modelParams.storageRate;
-            document.getElementById('edit-dio').value = modelParams.dio;
-            document.getElementById('edit-wacc').value = modelParams.wacc;
-            document.getElementById('edit-truck-speed').value = modelParams.truckSpeed;
-            document.getElementById('edit-opening-hours').value = modelParams.openingHours;
-            document.getElementById('edit-nsv').value = modelParams.nsv;
+            document.getElementById('edit-last-mile').value = modelParams.lastMileRate || DEFAULT_LAST_MILE_RATE;
+            document.getElementById('edit-storage').value = modelParams.storageRate || DEFAULT_STORAGE_RATE;
+            document.getElementById('edit-pieces-per-pallet').value = modelParams.piecesPerPallet || DEFAULT_PIECES_PER_PALLET;
+            document.getElementById('edit-dio').value = modelParams.dio || DEFAULT_DIO;
+            document.getElementById('edit-wacc').value = modelParams.wacc || 10;
+            document.getElementById('edit-truck-speed').value = modelParams.truckSpeed || DEFAULT_TRUCK_SPEED;
+            document.getElementById('edit-opening-hours').value = modelParams.openingHours || DEFAULT_OPENING_HOURS;
+            document.getElementById('edit-nsv').value = modelParams.nsv || 47000;
 
             // Switch to edit mode
             document.getElementById('params-display-mode').style.display = 'none';
@@ -4429,6 +4450,7 @@
             modelParams.midMileRate = parseFloat(document.getElementById('edit-mid-mile').value) || DEFAULT_MID_MILE_RATE;
             modelParams.lastMileRate = parseFloat(document.getElementById('edit-last-mile').value) || DEFAULT_LAST_MILE_RATE;
             modelParams.storageRate = parseFloat(document.getElementById('edit-storage').value) || DEFAULT_STORAGE_RATE;
+            modelParams.piecesPerPallet = parseInt(document.getElementById('edit-pieces-per-pallet').value) || DEFAULT_PIECES_PER_PALLET;
             modelParams.dio = parseInt(document.getElementById('edit-dio').value) || DEFAULT_DIO;
             modelParams.wacc = parseFloat(document.getElementById('edit-wacc').value) || 10;
             modelParams.truckSpeed = parseInt(document.getElementById('edit-truck-speed').value) || DEFAULT_TRUCK_SPEED;
