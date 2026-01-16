@@ -780,6 +780,12 @@
                                 </label>
                             </div>
                             <p style="margin-top: 4px; font-size: 12px; color: #888; font-style: italic;">Note: On manual run, links between facilities are based on distance only and may change after running the optimization.</p>
+                            <div id="dc-type-legend" style="display: none; margin-top: 10px; padding: 8px 12px; background: #f8fafc; border-radius: 6px; font-size: 12px;">
+                                <span style="font-weight: 600; margin-right: 12px;">DC Types:</span>
+                                <span style="color: #1a365d; margin-right: 12px;">▲ RDC</span>
+                                <span style="color: #2f855a; margin-right: 12px;">▲ DC Direct</span>
+                                <span style="color: #dd6b20; margin-right: 12px;">▲ Satellite</span>
+                            </div>
                             <div id="map-click-popup" style="display: none; position: fixed; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 12px; z-index: 1000;">
                                 <p style="margin: 0 0 10px 0; font-size: 13px; font-weight: 600;">Add at this location:</p>
                                 <div style="display: flex; gap: 8px;">
@@ -820,6 +826,23 @@
                                             </label>
                                             <input type="number" id="new-min-dc-size" value="500" min="0" style="width: 90px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
                                             <span style="font-size: 12px; color: #64748b;">PCS</span>
+                                        </div>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; cursor: pointer;">
+                                                <input type="checkbox" id="new-mid-mile-enabled">
+                                                Min Volume for NDC Supply
+                                            </label>
+                                            <input type="number" id="new-min-volume-threshold" value="10" min="0" style="width: 70px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
+                                            <span style="font-size: 12px; color: #64748b;">M PCS</span>
+                                        </div>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <label style="font-size: 12px; color: #64748b;">Mid Mile Rate</label>
+                                            <input type="number" id="new-mid-mile-rate" value="100" min="0" style="width: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5;" disabled>
+                                            <span style="font-size: 12px; color: #64748b;">IDR/PCS/1,000km</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1071,6 +1094,16 @@
                                 $C_{LM} = 100 \times 2{,}000 \times 9.60 \times \frac{12}{1000} = 23{,}040$ IDR/year
                             </div>
 
+                            <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Mid Mile Cost (Annual) <span style="background: #6b46c1; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: normal;">Optional</span></h4>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                <p>$$C_{MM} = \sum_{sat \in \text{Satellites}} d(rdc_{sat}, sat) \times \text{throughput}_{sat} \times \text{rate}_{MM} \times \frac{12}{1000}$$</p>
+                            </div>
+                            <div style="background: #f3e8ff; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
+                                <strong>When enabled:</strong> DCs with throughput below threshold (default 10M PCS) are classified as Satellites and receive goods from the nearest RDC instead of directly from the factory.<br>
+                                <strong>Example:</strong> A Satellite DC handles 5M PCS/month and is 200 km from its supplying RDC.<br>
+                                $C_{MM} = 200 \times 5{,}000{,}000 \times 100 \times \frac{12}{1000} = 1{,}200{,}000{,}000$ IDR/year
+                            </div>
+
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Storage Cost (Annual)</h4>
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
                                 <p>$$C_{Storage} = \sum_{dc \in \text{ActiveDCs}} \left(\frac{\text{Throughput}_{dc} \times DOS}{365}\right) \times \text{rate}_{storage} \times 12$$</p>
@@ -1084,7 +1117,8 @@
 
                             <h4 style="font-size: 14px; font-weight: 600; color: #333; margin: 20px 0 10px 0;">Total Cost</h4>
                             <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center;">
-                                <p style="font-size: 18px;">$$C_{Total} = C_{FM} + C_{LM} + C_{Storage}$$</p>
+                                <p style="font-size: 18px;">$$C_{Total} = C_{FM} + C_{MM} + C_{LM} + C_{Storage}$$</p>
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">where $C_{MM} = 0$ if mid-mile is disabled</p>
                             </div>
                             <div style="background: #e8f5e9; padding: 12px 15px; border-radius: 8px; margin-top: 10px; font-size: 13px;">
                                 <strong>Example:</strong> Using the examples above for a single DC with one customer:<br>
@@ -1253,6 +1287,8 @@
         const DEFAULT_DIO = 20;                // DOS (Days of Stock)
         const DEFAULT_TRUCK_SPEED = 40;        // km/h
         const DEFAULT_OPENING_HOURS = 12;      // hours/day
+        const DEFAULT_MID_MILE_RATE = 100;     // IDR/PCS/1,000km
+        const DEFAULT_MIN_VOLUME_THRESHOLD = 10000000;  // 10M PCS
 
         // ===== LEAFLET MAP INFRASTRUCTURE =====
 
@@ -1294,13 +1330,25 @@
         }
 
         // DC icon: Blue triangle when active, gray dashed outline when inactive
+        // Get DC color based on classification type
+        function getDCColor(dc) {
+            if (!dc.active) return '#f5f5f5';
+            switch(dc.dcType) {
+                case 'rdc': return '#1a365d';      // Dark blue - RDC (hub supplying satellites)
+                case 'direct': return '#2f855a';   // Green - Direct from factory
+                case 'satellite': return '#dd6b20'; // Orange - Receives from RDC
+                case 'local_rdc': return '#6b46c1'; // Purple - Edge case (warning)
+                default: return '#385D7F';          // Default blue
+            }
+        }
+
         function createDCIcon(dc, throughput = 0, isActive = true, showVolume = true) {
             // If showVolume is true, size varies by throughput; otherwise fixed size
             const size = isActive
                 ? (showVolume ? Math.max(20, Math.min(40, Math.sqrt(throughput) / 8)) : 20)
                 : 18;
-            const bgColor = isActive ? '#385D7F' : '#f5f5f5';
-            const labelColor = isActive ? '#385D7F' : '#999';
+            const bgColor = getDCColor(dc);
+            const labelColor = isActive ? bgColor : '#999';
             // Triangle using CSS borders - outer container includes space for label
             return L.divIcon({
                 className: 'dc-icon',
@@ -1667,7 +1715,7 @@
         }
 
         // Render markers on a map
-        function renderMapMarkers(map, markersLayer, dcs, demands, interactive = false) {
+        function renderMapMarkers(map, markersLayer, dcs, demands, interactive = false, midMileEnabled = false) {
             if (!map || !markersLayer) return;
 
             markersLayer.clearLayers();
@@ -1751,8 +1799,11 @@
             const activeDCs = dcs.filter(dc => dc.active);
 
             // First mile lines (factory to DCs) - clickable with popup
-            // Each DC connects to its nearest active factory
+            // Each DC connects to its nearest active factory (only non-satellite when mid-mile enabled)
             activeDCs.forEach(dc => {
+                // Skip satellites when mid-mile is enabled (they get supply from RDC)
+                if (midMileEnabled && dc.dcType === 'satellite') return;
+
                 const throughput = demands.filter(p => p.assignedDC === dc || p.assignedDCId === dc.id).reduce((sum, p) => sum + p.demand, 0);
                 const nearestFactory = findNearestActiveFactory(dc);
                 if (throughput > 0 && nearestFactory) {
@@ -1770,6 +1821,28 @@
                     markersLayer.addLayer(line);
                 }
             });
+
+            // Mid-mile lines (RDC/DC Direct to Satellite DCs) - purple dashed
+            if (midMileEnabled) {
+                activeDCs.filter(dc => dc.dcType === 'satellite' && dc.supplierDC).forEach(sat => {
+                    const throughput = demands.filter(p => p.assignedDC === sat || p.assignedDCId === sat.id).reduce((sum, p) => sum + p.demand, 0);
+                    if (throughput > 0) {
+                        const line = L.polyline([[sat.supplierDC.lat, sat.supplierDC.lng], [sat.lat, sat.lng]], {
+                            color: '#6b46c1',
+                            weight: 2,
+                            opacity: 0.6,
+                            dashArray: '5, 5'
+                        });
+                        line.bindPopup(`
+                            <b>Mid Mile</b><br>
+                            <b>Origin:</b> ${sat.supplierDC.name} (RDC)<br>
+                            <b>Destination:</b> ${sat.name} (Satellite)<br>
+                            <b>Volume:</b> ${throughput.toLocaleString()} PCS/month
+                        `);
+                        markersLayer.addLayer(line);
+                    }
+                });
+            }
 
             // Last mile lines (DCs to demand points) - clickable with popup
             demands.forEach(point => {
@@ -2408,6 +2481,69 @@
                 point.assignedDC = bestDC;
                 point.assignedDCId = bestDC ? bestDC.id : null;
                 point.distance = minDist;
+            });
+        }
+
+        // Classify DCs based on throughput threshold for mid-mile tier
+        function classifyDCs(dcs, demands, thresholdEnabled, thresholdValue) {
+            if (!thresholdEnabled) {
+                // All DCs are "direct" when mid-mile disabled
+                dcs.forEach(dc => {
+                    dc.dcType = 'direct';
+                    dc.supplierDC = null;
+                    dc.distanceToSupplier = 0;
+                });
+                return;
+            }
+
+            // Step 1: Calculate throughput for each active DC
+            const activeDCs = dcs.filter(dc => dc.active);
+            activeDCs.forEach(dc => {
+                dc.throughput = demands
+                    .filter(p => p.assignedDCId === dc.id)
+                    .reduce((sum, p) => sum + p.demand, 0);
+            });
+
+            // Step 2: Classify based on threshold
+            activeDCs.forEach(dc => {
+                if (dc.throughput >= thresholdValue) {
+                    dc.dcType = 'rdc_candidate';  // Will be RDC or DC Direct
+                    dc.supplierDC = null;
+                } else {
+                    dc.dcType = 'satellite';
+                    dc.supplierDC = null;  // To be assigned
+                }
+            });
+
+            // Step 3: Assign satellites to nearest RDC candidate
+            const rdcCandidates = activeDCs.filter(dc => dc.dcType === 'rdc_candidate');
+            const satellites = activeDCs.filter(dc => dc.dcType === 'satellite');
+
+            satellites.forEach(sat => {
+                let nearestRDC = null;
+                let minDist = Infinity;
+                rdcCandidates.forEach(rdc => {
+                    const dist = distance(sat, rdc);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestRDC = rdc;
+                    }
+                });
+                sat.supplierDC = nearestRDC;
+                sat.distanceToSupplier = nearestRDC ? minDist : 0;
+            });
+
+            // Step 4: Finalize RDC vs DC Direct classification
+            rdcCandidates.forEach(rdc => {
+                const hasSatellites = satellites.some(sat => sat.supplierDC === rdc);
+                rdc.dcType = hasSatellites ? 'rdc' : 'direct';
+            });
+
+            // Inactive DCs get default classification
+            dcs.filter(dc => !dc.active).forEach(dc => {
+                dc.dcType = 'direct';
+                dc.supplierDC = null;
+                dc.distanceToSupplier = 0;
             });
         }
 
@@ -3359,8 +3495,29 @@
             triggerAutoRun();
         });
 
+        // Mid-Mile checkbox handler
+        document.getElementById('new-mid-mile-enabled').addEventListener('change', function() {
+            const thresholdInput = document.getElementById('new-min-volume-threshold');
+            const rateInput = document.getElementById('new-mid-mile-rate');
+            const legend = document.getElementById('dc-type-legend');
+            if (this.checked) {
+                thresholdInput.disabled = false;
+                thresholdInput.style.background = 'white';
+                rateInput.disabled = false;
+                rateInput.style.background = 'white';
+                if (legend) legend.style.display = 'block';
+            } else {
+                thresholdInput.disabled = true;
+                thresholdInput.style.background = '#f5f5f5';
+                rateInput.disabled = true;
+                rateInput.style.background = '#f5f5f5';
+                if (legend) legend.style.display = 'none';
+            }
+            triggerAutoRun();
+        });
+
         // Parameter input change handlers for auto-run
-        ['new-first-mile-rate', 'new-last-mile-rate', 'new-storage-rate', 'new-dio', 'new-min-dc-size'].forEach(id => {
+        ['new-first-mile-rate', 'new-last-mile-rate', 'new-storage-rate', 'new-dio', 'new-min-dc-size', 'new-min-volume-threshold', 'new-mid-mile-rate'].forEach(id => {
             document.getElementById(id).addEventListener('change', triggerAutoRun);
         });
 
@@ -3664,6 +3821,9 @@
                 const dio = parseInt(document.getElementById('new-dio').value);
                 const minDCSizeEnabled = document.getElementById('new-min-dc-size-enabled').checked;
                 const minDCSize = parseInt(document.getElementById('new-min-dc-size').value || 500);
+                const midMileEnabled = document.getElementById('new-mid-mile-enabled').checked;
+                const minVolumeThreshold = parseFloat(document.getElementById('new-min-volume-threshold').value || 10) * 1000000; // Convert M to actual
+                const midMileRate = parseFloat(document.getElementById('new-mid-mile-rate').value || 100);
 
                 // Clone current state
                 const runDCs = JSON.parse(JSON.stringify(newScenarioDCs));
@@ -3753,8 +3913,11 @@
                 const endTime = performance.now();
                 const solveTime = Math.round(endTime - startTime);
 
+                // Classify DCs based on mid-mile threshold (after assignment)
+                classifyDCs(runDCs, runDemands, midMileEnabled, minVolumeThreshold);
+
                 // Calculate costs for display
-                const costs = calculateCostsForScenario(runDCs, runDemands, {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize});
+                const costs = calculateCostsForScenario(runDCs, runDemands, {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, midMileRate});
 
                 // Update live indicators
                 updateLiveIndicators(costs, runDemands, runDCs);
@@ -3765,16 +3928,22 @@
                 // Update map with optimized network
                 newScenarioDCs.forEach((dc, i) => {
                     dc.active = runDCs[i].active;
+                    dc.dcType = runDCs[i].dcType;
+                    dc.supplierDC = runDCs[i].supplierDC;
+                    dc.distanceToSupplier = runDCs[i].distanceToSupplier;
+                    dc.throughput = runDCs[i].throughput;
                 });
                 assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
+                // Re-run classification for the main array (to re-link supplierDC references)
+                classifyDCs(newScenarioDCs, newScenarioDemands, midMileEnabled, minVolumeThreshold);
+                renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true, midMileEnabled);
                 updateNewScenarioDCList();
 
                 // Store result for Quick Save
                 lastOptimizationResult = {
                     dcs: runDCs,
                     demands: runDemands,
-                    params: {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, solver: solverNames[solver], solveTime}
+                    params: {firstMile, lastMile, storage, dio, minDCSizeEnabled, minDCSize, midMileEnabled, minVolumeThreshold, midMileRate, solver: solverNames[solver], solveTime}
                 };
 
                 // Add to feed if requested (manual run or save)
@@ -3796,33 +3965,53 @@
         // Helper function to calculate costs for a scenario
         function calculateCostsForScenario(dcs, demands, params) {
             const activeDCs = dcs.filter(dc => dc.active);
-            let totalTransport = 0;
+            let totalFirstMile = 0;
+            let totalMidMile = 0;
+            let totalLastMile = 0;
             let totalStorage = 0;
             // Rates are in IDR/PCS/1000km, divide by 1000 for per-km rate
             const fm = params.firstMile / 1000;
             const lm = params.lastMile / 1000;
+            const mm = (params.midMileRate || DEFAULT_MID_MILE_RATE) / 1000;
 
             activeDCs.forEach(dc => {
-                const nearestFactory = findNearestActiveFactory(dc);
-                const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
                 // Use assignedDCId for comparison (works after JSON serialization)
                 const throughput = demands.filter(p => p.assignedDCId === dc.id || p.assignedDC === dc).reduce((sum, p) => sum + p.demand, 0);
-                // Annual cost: distance * demand * rate * 12 months
-                totalTransport += dist * throughput * fm * 12;
+
+                // First mile: only for DCs receiving directly from factory (RDC or Direct, not Satellite)
+                if (!params.midMileEnabled || dc.dcType !== 'satellite') {
+                    const nearestFactory = findNearestActiveFactory(dc);
+                    const dist = nearestFactory ? distance(nearestFactory, dc) : 0;
+                    // Annual cost: distance * demand * rate * 12 months
+                    totalFirstMile += dist * throughput * fm * 12;
+                }
+
+                // Mid-mile: satellite throughput × distance to supplier RDC × rate
+                if (params.midMileEnabled && dc.dcType === 'satellite' && dc.supplierDC) {
+                    totalMidMile += dc.distanceToSupplier * throughput * mm * 12;
+                }
+
+                // Storage calculation
                 const avgInventory = throughput * (params.dio / 365);
                 const billableInventory = params.minDCSizeEnabled ? Math.max(avgInventory, params.minDCSize) : avgInventory;
                 totalStorage += billableInventory * params.storage * 12;
             });
+
+            // Last mile (customer deliveries)
             demands.forEach(point => {
                 if (point.assignedDC || point.assignedDCId) {
                     // Annual cost: distance * demand * rate * 12 months
-                    totalTransport += point.distance * point.demand * lm * 12;
+                    totalLastMile += point.distance * point.demand * lm * 12;
                 }
             });
 
+            const totalTransport = totalFirstMile + totalMidMile + totalLastMile;
             return {
                 total: totalTransport + totalStorage,
                 transport: totalTransport,
+                firstMile: totalFirstMile,
+                midMile: totalMidMile,
+                lastMile: totalLastMile,
                 storage: totalStorage,
                 activeDCs: activeDCs.length
             };
