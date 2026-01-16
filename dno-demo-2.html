@@ -611,15 +611,15 @@
                                 <!-- Number of Clusters (using number input for performance) -->
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <label style="font-size: 13px; color: #64748b;">Clusters:</label>
-                                    <input type="number" id="cluster-count" min="1" max="200" value="50" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 80px;">
+                                    <input type="number" id="cluster-count" min="1" max="200" value="100" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 80px;">
                                 </div>
 
                                 <!-- Algorithm Selection -->
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <label style="font-size: 13px; color: #64748b;">Algorithm:</label>
                                     <select id="clustering-algorithm" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-                                        <option value="kmeans">Weighted K-Means</option>
                                         <option value="kmedoids">Weighted K-Medoids</option>
+                                        <option value="kmeans">Weighted K-Means</option>
                                     </select>
                                 </div>
 
@@ -636,7 +636,11 @@
                                 </div>
                             </div>
 
-                            <!-- Clustering Status/Info -->
+                            <!-- Clustering Status/Info (shows above buttons when action taken) -->
+                            <div id="clustering-action-status" style="display: none; padding: 10px 15px; background: #d4edda; border-radius: 4px; font-size: 13px; margin-bottom: 10px; text-align: center;">
+                            </div>
+
+                            <!-- Clustering Stats Info -->
                             <div id="clustering-info" style="display: none; padding: 10px 15px; background: #e8f4fd; border-radius: 4px; font-size: 12px; color: var(--cel-dark-blue);">
                                 <!-- Will show clustering results info -->
                             </div>
@@ -674,15 +678,13 @@
                                 <img src="pictures/scenario.png" alt="Scenario" style="height: 24px; width: auto;">
                                 <h3 style="font-size: 18px; font-weight: 600; margin: 0; color: var(--text-dark);">Create New Scenario</h3>
                             </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; color: #64748b;" onclick="event.stopPropagation();">
-                                    <span>Preload:</span>
-                                    <select id="preload-scenario-select" onclick="event.stopPropagation();" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-                                        <option value="">None</option>
-                                        <option value="baseline">0,5_Baseline_2028</option>
+                            <div style="display: flex; align-items: center; gap: 15px;" onclick="event.stopPropagation();">
+                                <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; color: #64748b;">
+                                    <span>Parameters:</span>
+                                    <select id="scenario-param-preset-select" style="padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+                                        <option value="default">Default</option>
                                     </select>
                                 </label>
-                                <button id="reset-to-preloaded" onclick="event.stopPropagation();" style="display: none; padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Reset</button>
                             </div>
                         </div>
 
@@ -694,8 +696,8 @@
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-size: 13px; color: #64748b;">Mode:</span>
                                 <select id="run-mode-select" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
-                                    <option value="auto">Auto Run</option>
                                     <option value="manual">Manual</option>
+                                    <option value="auto">Auto Run</option>
                                 </select>
                             </div>
 
@@ -710,7 +712,7 @@
                             </div>
 
                             <!-- Run Button (only shown in Manual mode) -->
-                            <button id="run-new-optimization" style="display: none; padding: 10px 20px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;">Run Optimization</button>
+                            <button id="run-new-optimization" style="padding: 10px 20px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px;">Run Optimization</button>
 
                             <!-- Run Time Indicator -->
                             <span id="run-time-indicator" style="display: none; margin-left: 15px; padding: 6px 12px; background: #e8f4fd; color: var(--cel-blue); border-radius: 4px; font-size: 12px; font-weight: 500;"></span>
@@ -869,9 +871,9 @@
                                 <button id="collapse-all-scenarios" style="padding: 6px 14px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Collapse All</button>
                             </div>
                         </div>
-                        </div>
                     </div>
                     <div id="scenario-feed"></div>
+                </div>
                 </div>
 
                 <!-- Data Admin Tab -->
@@ -986,7 +988,7 @@
 
                 <!-- Parameters Tab -->
                 <div class="tab-content" id="parameters-tab">
-                    <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+                    <div style="padding: 20px; max-width: 1200px; margin: 0 auto; min-height: 400px;">
                         <!-- Parameters Section -->
                         <div style="background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -999,9 +1001,17 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
                                     <span id="params-save-status" style="font-size: 13px; color: #28a745; display: none;">All changes saved</span>
-                                    <button id="save-preset-btn" style="padding: 8px 16px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">Save as Preset</button>
+                                    <button id="save-current-preset-btn" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; display: none;">Save</button>
+                                    <button id="save-as-preset-btn" style="padding: 8px 16px; background: var(--cel-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">Save As</button>
+                                    <button id="rename-preset-btn" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; display: none;">Rename</button>
+                                    <span style="border-left: 1px solid #ccc; height: 20px; margin: 0 5px;"></span>
+                                    <button id="export-presets-btn" style="padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">Export</button>
+                                    <label style="padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                                        Import
+                                        <input type="file" id="import-presets-input" accept=".json" style="display: none;">
+                                    </label>
                                 </div>
                             </div>
 
@@ -3275,7 +3285,8 @@
 
         // Solver and run mode handling
         let selectedSolver = 'highs';
-        let runMode = 'auto';
+        // Initialize runMode from actual HTML select value
+        let runMode = document.getElementById('run-mode-select')?.value || 'manual';
         let autoRunTimeout = null;
         let isOptimizing = false;
 
@@ -3311,6 +3322,8 @@
             if (runMode !== 'auto') return;
             if (autoRunTimeout) clearTimeout(autoRunTimeout);
             autoRunTimeout = setTimeout(() => {
+                // Double-check mode hasn't changed during debounce delay
+                if (runMode !== 'auto') return;
                 runOptimization(false); // false = don't add to feed
             }, 300);
         }
@@ -3706,79 +3719,6 @@
         // Store preloaded scenario state for reset functionality
         let preloadedState = null;
 
-        // Preload scenario handler
-        document.getElementById('preload-scenario-select').addEventListener('change', (e) => {
-            if (e.target.value === '') {
-                preloadedState = null;
-                document.getElementById('reset-to-preloaded').style.display = 'none';
-                return;
-            }
-
-            const preloadScenario = loadScenario(e.target.value, e.target.options[e.target.selectedIndex].text);
-
-            // Update DCs
-            newScenarioDCs = JSON.parse(JSON.stringify(preloadScenario.dcLocations));
-            newScenarioDemands = JSON.parse(JSON.stringify(preloadScenario.demandPoints));
-
-            // Store preloaded state for reset
-            preloadedState = {
-                dcLocations: JSON.parse(JSON.stringify(preloadScenario.dcLocations)),
-                demandPoints: JSON.parse(JSON.stringify(preloadScenario.demandPoints)),
-                firstMileRate: DEFAULT_FIRST_MILE_RATE,
-                lastMileRate: DEFAULT_LAST_MILE_RATE,
-                storageRate: DEFAULT_STORAGE_RATE,
-                dio: DEFAULT_DIO,
-                minDCSizeEnabled: document.getElementById('new-min-dc-size-enabled').checked,
-                minDCSize: document.getElementById('new-min-dc-size').value
-            };
-
-            // Reinitialize checkboxes with new DC array
-            reinitializeNewScenarioCheckboxes();
-
-            // Update parameters
-            document.getElementById('new-first-mile-rate').value = preloadedState.firstMileRate;
-            document.getElementById('new-last-mile-rate').value = preloadedState.lastMileRate;
-            document.getElementById('new-storage-rate').value = preloadedState.storageRate;
-            document.getElementById('new-dio').value = preloadedState.dio;
-            document.getElementById('new-min-dc-size-enabled').checked = preloadedState.minDCSizeEnabled;
-            document.getElementById('new-min-dc-size').value = preloadedState.minDCSize;
-            document.getElementById('new-min-dc-size').disabled = !preloadedState.minDCSizeEnabled;
-            document.getElementById('new-min-dc-size').style.background = preloadedState.minDCSizeEnabled ? 'white' : '#f5f5f5';
-
-            // Show reset button
-            document.getElementById('reset-to-preloaded').style.display = 'block';
-
-            // Redraw
-            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-            renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
-        });
-
-        // Reset to preloaded handler
-        document.getElementById('reset-to-preloaded').addEventListener('click', () => {
-            if (!preloadedState) return;
-
-            // Restore preloaded state
-            newScenarioDCs = JSON.parse(JSON.stringify(preloadedState.dcLocations));
-            newScenarioDemands = JSON.parse(JSON.stringify(preloadedState.demandPoints));
-
-            // Reinitialize checkboxes with restored DC array
-            reinitializeNewScenarioCheckboxes();
-
-            // Restore parameters
-            document.getElementById('new-first-mile-rate').value = preloadedState.firstMileRate;
-            document.getElementById('new-last-mile-rate').value = preloadedState.lastMileRate;
-            document.getElementById('new-storage-rate').value = preloadedState.storageRate;
-            document.getElementById('new-dio').value = preloadedState.dio;
-            document.getElementById('new-min-dc-size-enabled').checked = preloadedState.minDCSizeEnabled;
-            document.getElementById('new-min-dc-size').value = preloadedState.minDCSize;
-            document.getElementById('new-min-dc-size').disabled = !preloadedState.minDCSizeEnabled;
-            document.getElementById('new-min-dc-size').style.background = preloadedState.minDCSizeEnabled ? 'white' : '#f5f5f5';
-
-            // Redraw
-            assignCustomersToScenario(newScenarioDemands, newScenarioDCs);
-            renderMapMarkers(mapNewScenario, markersNewScenario, newScenarioDCs, newScenarioDemands, true);
-        });
-
         // Store last optimization result for Quick Save
         let lastOptimizationResult = null;
 
@@ -4022,7 +3962,7 @@
 
         // Run Optimization button handler (for manual mode)
         document.getElementById('run-new-optimization').addEventListener('click', async () => {
-            await runOptimization(true);
+            await runOptimization(false);
         });
 
         // Quick Save handler - adds to feed without saving to localStorage
@@ -4071,7 +4011,6 @@
             document.getElementById('scenario-select-2').appendChild(option1.cloneNode(true));
             document.getElementById('scenario-select-3').appendChild(option1.cloneNode(true));
             document.getElementById('reference-scenario-select').appendChild(option1.cloneNode(true));
-            document.getElementById('preload-scenario-select').appendChild(option1);
 
             // Also add to scenario feed
             if (lastOptimizationResult) {
@@ -4415,7 +4354,7 @@
             }, 2000);
         }
 
-        // Auto-save parameter when changed
+        // Update modelParams when inputs change (no auto-save to preset)
         function handleParamChange() {
             modelParams.firstMileRate = parseFloat(document.getElementById('param-first-mile').value) || DEFAULT_FIRST_MILE_RATE;
             modelParams.midMileRate = parseFloat(document.getElementById('param-mid-mile').value) || DEFAULT_MID_MILE_RATE;
@@ -4428,9 +4367,8 @@
             modelParams.openingHours = parseInt(document.getElementById('param-opening-hours').value) || DEFAULT_OPENING_HOURS;
             modelParams.nsv = parseInt(document.getElementById('param-nsv').value) || 47000;
 
+            // Save to localStorage for session persistence (but not to preset)
             saveModelParams(modelParams);
-            updateParamsInputs();
-            showSaveStatus();
             triggerAutoRun();
         }
 
@@ -4593,9 +4531,23 @@
             });
         }
 
+        // Track currently loaded preset name
+        let currentPresetName = 'default';
+
+        // Update button visibility based on selected preset
+        function updatePresetButtons() {
+            const saveBtn = document.getElementById('save-current-preset-btn');
+            const renameBtn = document.getElementById('rename-preset-btn');
+            const isCustomPreset = currentPresetName !== 'default';
+
+            saveBtn.style.display = isCustomPreset ? 'inline-block' : 'none';
+            renameBtn.style.display = isCustomPreset ? 'inline-block' : 'none';
+        }
+
         // Load preset into current parameters
         document.getElementById('load-preset-dropdown').addEventListener('change', function() {
             const presetName = this.value;
+            currentPresetName = presetName;
 
             if (presetName === 'default') {
                 // Reset to default values
@@ -4628,12 +4580,36 @@
 
             saveModelParams(modelParams);
             updateParamsInputs();
+            updatePresetButtons();
             showSaveStatus();
             triggerAutoRun();
         });
 
-        // Save as Preset button
-        document.getElementById('save-preset-btn').addEventListener('click', function() {
+        // Save button - saves to currently selected preset
+        document.getElementById('save-current-preset-btn').addEventListener('click', function() {
+            if (currentPresetName === 'default') return;
+
+            const presets = loadPresets();
+            presets[currentPresetName] = {
+                firstMileRate: modelParams.firstMileRate,
+                midMileRate: modelParams.midMileRate,
+                lastMileRate: modelParams.lastMileRate,
+                storageRate: modelParams.storageRate,
+                piecesPerPallet: modelParams.piecesPerPallet,
+                dio: modelParams.dio,
+                wacc: modelParams.wacc,
+                truckSpeed: modelParams.truckSpeed,
+                openingHours: modelParams.openingHours,
+                nsv: modelParams.nsv
+            };
+
+            savePresets(presets);
+            renderPresets();
+            showSaveStatus();
+        });
+
+        // Save As button - creates a new preset
+        document.getElementById('save-as-preset-btn').addEventListener('click', function() {
             const presetName = prompt('Enter a name for this preset:');
             if (!presetName || !presetName.trim()) return;
 
@@ -4660,13 +4636,191 @@
             savePresets(presets);
             renderPresets();
             updatePresetDropdown();
-            alert(`Preset "${name}" saved!`);
+
+            // Select the newly created preset
+            currentPresetName = name;
+            document.getElementById('load-preset-dropdown').value = name;
+            updatePresetButtons();
+        });
+
+        // Rename button - renames the currently selected preset
+        document.getElementById('rename-preset-btn').addEventListener('click', function() {
+            if (currentPresetName === 'default') return;
+
+            const newName = prompt('Enter new name for this preset:', currentPresetName);
+            if (!newName || !newName.trim() || newName.trim() === currentPresetName) return;
+
+            const name = newName.trim();
+            const presets = loadPresets();
+
+            if (presets[name]) {
+                alert(`A preset named "${name}" already exists.`);
+                return;
+            }
+
+            // Rename: copy to new name, delete old
+            presets[name] = presets[currentPresetName];
+            delete presets[currentPresetName];
+            savePresets(presets);
+
+            // Update current preset name and UI
+            currentPresetName = name;
+            renderPresets();
+            updatePresetDropdown();
+            document.getElementById('load-preset-dropdown').value = name;
+            updatePresetButtons();
         });
 
         // Initialize Parameters tab
         updateParamsInputs();
         renderPresets();
         updatePresetDropdown();
+        updatePresetButtons();
+
+        // Update scenario param preset dropdown (synced with main preset dropdown)
+        function updateScenarioPresetDropdown() {
+            const dropdown = document.getElementById('scenario-param-preset-select');
+            const presets = loadPresets();
+            const presetNames = Object.keys(presets).sort();
+
+            // Clear and rebuild
+            dropdown.innerHTML = '<option value="default">Default</option>';
+            presetNames.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                dropdown.appendChild(option);
+            });
+
+            // Sync with current preset selection
+            dropdown.value = currentPresetName;
+        }
+
+        // Scenario param preset change handler
+        document.getElementById('scenario-param-preset-select').addEventListener('change', function() {
+            const presetName = this.value;
+            currentPresetName = presetName;
+
+            if (presetName === 'default') {
+                modelParams.firstMileRate = DEFAULT_FIRST_MILE_RATE;
+                modelParams.midMileRate = DEFAULT_MID_MILE_RATE;
+                modelParams.lastMileRate = DEFAULT_LAST_MILE_RATE;
+                modelParams.storageRate = DEFAULT_STORAGE_RATE;
+                modelParams.piecesPerPallet = DEFAULT_PIECES_PER_PALLET;
+                modelParams.dio = DEFAULT_DIO;
+                modelParams.wacc = 10;
+                modelParams.truckSpeed = DEFAULT_TRUCK_SPEED;
+                modelParams.openingHours = DEFAULT_OPENING_HOURS;
+                modelParams.nsv = 47000;
+            } else {
+                const presets = loadPresets();
+                const preset = presets[presetName];
+                if (preset) {
+                    modelParams.firstMileRate = preset.firstMileRate;
+                    modelParams.midMileRate = preset.midMileRate;
+                    modelParams.lastMileRate = preset.lastMileRate;
+                    modelParams.storageRate = preset.storageRate;
+                    modelParams.piecesPerPallet = preset.piecesPerPallet;
+                    modelParams.dio = preset.dio;
+                    modelParams.wacc = preset.wacc;
+                    modelParams.truckSpeed = preset.truckSpeed;
+                    modelParams.openingHours = preset.openingHours;
+                    modelParams.nsv = preset.nsv;
+                }
+            }
+
+            saveModelParams(modelParams);
+            updateParamsInputs();
+            updatePresetButtons();
+            // Sync the main dropdown
+            document.getElementById('load-preset-dropdown').value = presetName;
+            triggerAutoRun();
+        });
+
+        // Export presets to JSON file
+        document.getElementById('export-presets-btn').addEventListener('click', function() {
+            const presets = loadPresets();
+            if (Object.keys(presets).length === 0) {
+                alert('No presets to export. Create some presets first.');
+                return;
+            }
+
+            const dataStr = JSON.stringify(presets, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            // Generate filename with preset names
+            const presetNames = Object.keys(presets);
+            let filename;
+            if (presetNames.length === 1) {
+                filename = `preset_${presetNames[0].replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+            } else {
+                filename = `presets_${presetNames.length}_items.json`;
+            }
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Import presets from JSON file
+        document.getElementById('import-presets-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const importedPresets = JSON.parse(event.target.result);
+
+                    // Validate structure
+                    if (typeof importedPresets !== 'object') {
+                        throw new Error('Invalid preset file format');
+                    }
+
+                    // Merge with existing presets
+                    const existingPresets = loadPresets();
+                    let importedCount = 0;
+                    let overwrittenCount = 0;
+
+                    for (const name in importedPresets) {
+                        if (existingPresets[name]) {
+                            overwrittenCount++;
+                        } else {
+                            importedCount++;
+                        }
+                        existingPresets[name] = importedPresets[name];
+                    }
+
+                    savePresets(existingPresets);
+                    renderPresets();
+                    updatePresetDropdown();
+                    updateScenarioPresetDropdown();
+
+                    alert(`Imported ${importedCount} new presets${overwrittenCount > 0 ? ` (${overwrittenCount} overwritten)` : ''}.`);
+                } catch (err) {
+                    alert('Error importing presets: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+
+            // Reset file input
+            this.value = '';
+        });
+
+        // Initialize scenario preset dropdown
+        updateScenarioPresetDropdown();
+
+        // Override updatePresetDropdown to also update scenario dropdown
+        const originalUpdatePresetDropdown = updatePresetDropdown;
+        updatePresetDropdown = function() {
+            originalUpdatePresetDropdown();
+            updateScenarioPresetDropdown();
+        };
 
         // ===== DATA INPUT EVENT HANDLERS =====
 
@@ -4877,8 +5031,6 @@
 
                 // Load data into app
                 loadDataIntoApp(dataType, data);
-
-                alert(`Successfully loaded ${data.length} ${dataType} points from ${file.name}`);
             };
             reader.readAsText(file);
         }
@@ -5223,17 +5375,17 @@
 
             triggerAutoRun();
 
-            alert(`${centroids.length} centroids added as new DCs.`);
+            // Show status message above buttons
+            const statusDiv = document.getElementById('clustering-action-status');
+            statusDiv.innerHTML = `<span style="color: #28a745; font-weight: 500;">✓ ${centroids.length} centroids added as new DCs.</span>`;
+            statusDiv.style.display = 'block';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
         });
 
         // Replace DCs with centroids button
         document.getElementById('replace-dcs-with-centroids').addEventListener('click', function() {
             if (!currentClusteringResult || !currentClusteringResult.centroids) {
                 alert('Please run clustering first.');
-                return;
-            }
-
-            if (!confirm('This will replace all existing DCs with cluster centroids. Continue?')) {
                 return;
             }
 
@@ -5270,7 +5422,11 @@
 
             triggerAutoRun();
 
-            alert(`Replaced all DCs with ${centroids.length} cluster centroids.`);
+            // Show status message above buttons
+            const statusDiv = document.getElementById('clustering-action-status');
+            statusDiv.innerHTML = `<span style="color: #dc3545; font-weight: 500;">✓ Replaced all DCs with ${centroids.length} cluster centroids.</span>`;
+            statusDiv.style.display = 'block';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
         });
 
         // ===== END CLUSTERING EVENT HANDLERS =====
@@ -5430,7 +5586,6 @@
                     document.getElementById('scenario-select-2').appendChild(option.cloneNode(true));
                     document.getElementById('scenario-select-3').appendChild(option.cloneNode(true));
                     document.getElementById('reference-scenario-select').appendChild(option.cloneNode(true));
-                    document.getElementById('preload-scenario-select').appendChild(option);
                 }
 
                 alert('Scenario saved as "' + saveName + '"!');
