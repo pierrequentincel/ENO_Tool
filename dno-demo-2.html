@@ -1016,6 +1016,7 @@
                                     </thead>
                                     <tbody>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td id="display-first-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">50</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td id="display-mid-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">100</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td id="display-last-mile" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">200</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td id="display-storage" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">1400</td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td id="display-dio" style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">20</td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
@@ -1041,6 +1042,7 @@
                                     </thead>
                                     <tbody>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">First Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-first-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from factory to DC</td></tr>
+                                        <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Mid Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-mid-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from RDC to Satellite DC</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Last Mile Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-last-mile" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/1,000km</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Transport cost from DC to customer</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">Storage Rate</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-storage" step="0.01" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">IDR/PCS/month</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Warehousing cost per unit</td></tr>
                                         <tr><td style="padding: 10px; border-bottom: 1px solid #eee;">DOS</td><td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;"><input type="number" id="edit-dio" step="1" style="width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: right;"></td><td style="padding: 10px; border-bottom: 1px solid #eee;">days</td><td style="padding: 10px; border-bottom: 1px solid #eee;">Days of Stock</td></tr>
@@ -1895,6 +1897,7 @@
             }
             return {
                 firstMileRate: DEFAULT_FIRST_MILE_RATE,
+                midMileRate: DEFAULT_MID_MILE_RATE,
                 lastMileRate: DEFAULT_LAST_MILE_RATE,
                 storageRate: DEFAULT_STORAGE_RATE,
                 dio: DEFAULT_DIO,
@@ -4373,6 +4376,7 @@
         // Update display with current values on page load
         function updateParamsDisplay() {
             document.getElementById('display-first-mile').textContent = modelParams.firstMileRate;
+            document.getElementById('display-mid-mile').textContent = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
             document.getElementById('display-last-mile').textContent = modelParams.lastMileRate;
             document.getElementById('display-storage').textContent = modelParams.storageRate;
             document.getElementById('display-dio').textContent = modelParams.dio;
@@ -4386,6 +4390,7 @@
             document.getElementById('new-last-mile-rate').value = modelParams.lastMileRate;
             document.getElementById('new-storage-rate').value = modelParams.storageRate;
             document.getElementById('new-dio').value = modelParams.dio;
+            document.getElementById('new-mid-mile-rate').value = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
         }
 
         // Initialize display on page load
@@ -4395,6 +4400,7 @@
         document.getElementById('edit-default-params-btn').addEventListener('click', function() {
             // Populate edit fields with current values
             document.getElementById('edit-first-mile').value = modelParams.firstMileRate;
+            document.getElementById('edit-mid-mile').value = modelParams.midMileRate || DEFAULT_MID_MILE_RATE;
             document.getElementById('edit-last-mile').value = modelParams.lastMileRate;
             document.getElementById('edit-storage').value = modelParams.storageRate;
             document.getElementById('edit-dio').value = modelParams.dio;
@@ -4420,6 +4426,7 @@
         document.getElementById('save-params-btn').addEventListener('click', function() {
             // Update model parameters
             modelParams.firstMileRate = parseFloat(document.getElementById('edit-first-mile').value) || DEFAULT_FIRST_MILE_RATE;
+            modelParams.midMileRate = parseFloat(document.getElementById('edit-mid-mile').value) || DEFAULT_MID_MILE_RATE;
             modelParams.lastMileRate = parseFloat(document.getElementById('edit-last-mile').value) || DEFAULT_LAST_MILE_RATE;
             modelParams.storageRate = parseFloat(document.getElementById('edit-storage').value) || DEFAULT_STORAGE_RATE;
             modelParams.dio = parseInt(document.getElementById('edit-dio').value) || DEFAULT_DIO;
