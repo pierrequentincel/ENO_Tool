@@ -1,0 +1,6 @@
+# macOS system files
+.DS_Store
+*/.DS_Store
+
+# Temporary/local folders
+pictures/lpc/
